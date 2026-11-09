@@ -122,7 +122,7 @@ img { max-width: 100%; display: block; }
 
 /* 粒子标题 */
 [data-fx] { position: relative; }
-[data-fx].fx-run:not(.fx-done) .fx-line { opacity: 0; }
+[data-fx]:not(.fx-done) .fx-line { opacity: 0; }
 [data-fx] .fx-line { transition: opacity 1s ease; display: block; }
 .fx-canvas { position: absolute; pointer-events: none; transition: opacity .9s ease; z-index: 2; }
 
@@ -421,3 +421,56 @@ table.tbl { width: 100%; border-collapse: collapse; background: var(--card); bor
 .task .pts { min-width: 0; }
 .task .pts .num { font-size: 24px; }
 .metrics .num { font-size: 26px; overflow-wrap: anywhere; }
+
+/* ==========================================================
+ *  动效
+ * ========================================================== */
+.fxw { display: inline-block; position: relative; }
+.num[data-fx] .fx-line, .fxw .fx-line { display: inline-block; }
+.metrics .num { display: block; }
+.contrib-row .num { line-height: 1; }
+
+/* 滚动进场：用 translate 位移，不影响卡片原有的倾斜角度 */
+.rv { opacity: 0; translate: 0 22px; transition: opacity .6s ease var(--d, 0s), translate .7s cubic-bezier(.2, .8, .2, 1) var(--d, 0s); }
+.rv.in { opacity: 1; translate: 0 0; }
+.rv.no-anim, .rv.no-anim > i { transition: none !important; }
+
+/* 进度条从 0 生长 */
+.bar > i { width: var(--w, 0); }
+.bar.rv > i { width: 0; transition: width 1.4s cubic-bezier(.2, .8, .2, 1) calc(var(--d, 0s) + .25s); }
+.bar.rv.in > i { width: var(--w); }
+
+/* 马克笔底条：像荧光笔一样划出来 */
+.marker::after { transform-origin: left center; animation: draw .8s cubic-bezier(.2, .8, .2, 1) .25s both; }
+.hero-band { transform-origin: left center; animation: draw-band 1s cubic-bezier(.2, .8, .2, 1) 1.6s both; }
+@keyframes draw { from { transform: rotate(-1.6deg) scaleX(0); } to { transform: rotate(-1.6deg) scaleX(1); } }
+@keyframes draw-band { from { transform: rotate(-2.2deg) scaleX(0); } to { transform: rotate(-2.2deg) scaleX(1); } }
+
+/* 实时圆点 */
+.live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--orange); margin-right: 8px; vertical-align: 1px; box-shadow: 0 0 0 0 rgba(234, 85, 32, .6); animation: live 1.6s infinite; }
+@keyframes live { 70% { box-shadow: 0 0 0 8px rgba(234, 85, 32, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 85, 32, 0); } }
+
+/* 积分变化飘字 */
+.points-card { position: relative; }
+.fly { position: absolute; right: 18px; top: 40px; font-family: var(--f-num); font-size: 40px; pointer-events: none; animation: fly 2.4s ease-out .4s both; z-index: 3; }
+.fly.up { color: var(--lime); }
+.fly.down { color: var(--orange); }
+@keyframes fly { 0% { opacity: 0; transform: translateY(16px) scale(.7); } 20% { opacity: 1; transform: translateY(0) scale(1.1); } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-46px) scale(1); } }
+
+/* 礼花画布 */
+.fx-burst { position: absolute; inset: 0; pointer-events: none; z-index: 120; }
+
+/* 积分卡与 TabBar 的小动作 */
+.points-card .big .fxw { text-shadow: 0 0 18px rgba(200, 240, 74, .25); }
+.tabbar button { transition: transform .2s; }
+.tabbar button.on svg { animation: hop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes hop { 40% { transform: translateY(-5px); } }
+.band { animation: band-in .9s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes band-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rv { opacity: 1; translate: none; transition: none; }
+  .bar.rv > i { width: var(--w); transition: none; }
+  .marker::after, .hero-band, .live, .fly, .band, .tabbar button.on svg { animation: none; }
+}
+.screen .toast { position: absolute; }

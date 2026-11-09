@@ -9,7 +9,17 @@
   var $tabbar = document.getElementById('tabbar');
 
   var state = { tab: 'home', filter: 'all', view: '' };
-  var fxPlayed = false;
+  var lastSeen = { id: '', points: 0 }; // 上次看到首页时的积分，用于“+N / -N 分”飘字
+
+  // 粒子数字：同一 key 只汇聚一次，数值变化后 key 变化会重新汇聚
+  var FX_LIGHT = '#c8f04a,#c8f04a,#c8f04a,#f2ede1,#ea5520';
+  var FX_SEC = { donation: '#ea5520,#ea5520,#141414', synergy: '#8fc31f,#c8f04a,#141414', community: '#1597a6,#1597a6,#141414' };
+  function fxa(key, colors) {
+    return ' data-fx data-fx-key="' + esc(key) + '" data-fx-step="2" data-fx-duration="2000"' + (colors ? ' data-fx-colors="' + colors + '"' : '');
+  }
+  function fxNum(cls, val, key, colors) {
+    return '<span class="' + cls + '"' + fxa(key, colors) + '><span class="fx-line">' + val + '</span></span>';
+  }
 
   /* ---------- 工具 ---------- */
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -19,12 +29,12 @@
   function no(i) { return pad(i + 1); }
   function toast(msg) {
     var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
-    document.body.appendChild(t); setTimeout(function () { t.remove(); }, 1800);
+    $screen.appendChild(t); setTimeout(function () { t.remove(); }, 1800);
   }
   function me() { var id = LSL.currentId(); var m = id && LSL.find('merchants', id); return m && m.status === 'active' ? m : null; }
   function chip(sec) { var s = LSL.section(sec); return s ? '<span class="chip ' + s.key + '">' + esc(s.name) + '</span>' : ''; }
   function secHead(n, total, label, right) {
-    return '<div class="sec-head"><span class="mono"><b>' + pad(n) + ' / ' + pad(total) + '</b> · ' + esc(label) + '</span>' + (right ? '<span class="mono">' + right + '</span>' : '') + '</div>';
+    return '<div class="sec-head rv"><span class="mono"><b>' + pad(n) + ' / ' + pad(total) + '</b> · ' + esc(label) + '</span>' + (right ? '<span class="mono">' + right + '</span>' : '') + '</div>';
   }
   function shortfall(m, r) {
     if (!r.active) return '<span class="muted">已下架</span>';
@@ -36,7 +46,8 @@
   var TITLES = { home: '麓商联积分', tasks: '本月可参与', mall: '积分兑换', ledger: '积分明细', bind: '绑定门店' };
   function go(tab) { state.tab = tab; state.view = ''; render(); $page.scrollTop = 0; }
 
-  function render() {
+  function render(opts) {
+    opts = opts || {};
     var m = me();
     var view = (!m || state.view === 'bind') ? 'bind' : state.tab;
     $title.textContent = TITLES[view];
@@ -45,13 +56,12 @@
     Array.prototype.forEach.call($tabbar.children, function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === state.tab); });
     var html = { home: viewHome, tasks: viewTasks, mall: viewMall, ledger: viewLedger, bind: viewBind }[view](m);
     $page.innerHTML = html;
-    if (view === 'home' || view === 'bind') {
-      if (!fxPlayed) { fxPlayed = true; LSLFX.run($page); }
-    }
+    LSLFX.run($page, { instant: !!opts.quiet });
+    if (m && view === 'home') lastSeen = { id: m.id, points: m.points };
   }
 
   function heroTitle(l1, l2) {
-    var fx = fxPlayed ? '' : ' data-fx';
+    var fx = ' data-fx data-fx-key="hero"';
     return '<h1 class="hero-title"' + fx + '><span class="fx-line">' + esc(l1) + '</span><span class="fx-line">' + esc(l2) + '<i class="hero-band"></i></span></h1>';
   }
 
@@ -75,26 +85,29 @@
     h += '<div class="hero-tag">LET\'S GROW · TOGETHER</div>';
     h += '<div class="store-line"><div><div class="name">' + esc(m.name) + '</div><div class="meta">' + esc(m.category) + ' · ' + esc(m.code) + '</div></div><span class="chip plain">Lv.' + (lv.idx + 1) + ' ' + esc(lv.cur.name) + '</span></div>';
 
-    h += '<div class="points-card">';
+    var delta = lastSeen.id === m.id ? m.points - lastSeen.points : 0;
+    h += '<div class="points-card rv">';
+    if (delta) h += '<span class="fly ' + (delta > 0 ? 'up' : 'down') + '">' + (delta > 0 ? '+' : '') + delta + '</span>';
     h += '<div class="mono">AVAILABLE POINTS · 可用积分</div>';
-    h += '<div class="big num">' + fmtNum(m.points) + '<small>分</small></div>';
+    h += '<div class="big num">' + fxNum('fxw', fmtNum(m.points), 'pts-' + m.id + '-' + m.points, FX_LIGHT) + '<small>分</small></div>';
     h += '<div class="stats">';
-    h += '<div><div class="num">' + fmtNum(month) + '<em>+</em></div><div class="lbl">本月累计获得</div><div class="mono">THIS MONTH</div></div>';
+    h += '<div><div class="num">' + fxNum('fxw', fmtNum(month), 'month-' + m.id + '-' + month, FX_LIGHT) + '<em>+</em></div><div class="lbl">本月累计获得</div><div class="mono">THIS MONTH</div></div>';
     h += '<div><div class="num lime">' + esc(lv.cur.name) + '</div><div class="lbl">当前年度等级</div><div class="mono">' + esc(lv.cur.en) + '</div></div>';
     h += '</div>';
-    h += '<div class="lvbar"><div class="bar"><i class="lv" style="width:' + pct + '%"></i></div><div class="mono"><span>年度贡献 ' + annual + '</span><span>' + (lv.next ? '距「' + lv.next.name + '」' + (lv.next.min - annual) + ' 分' : '已达最高等级') + '</span></div></div>';
+    h += '<div class="lvbar"><div class="bar rv"><i class="lv" style="--w:' + pct + '%"></i></div><div class="mono"><span>年度贡献 ' + annual + '</span><span>' + (lv.next ? '距「' + lv.next.name + '」' + (lv.next.min - annual) + ' 分' : '已达最高等级') + '</span></div></div>';
     h += '</div>';
-    h += '<div class="hero-actions"><button class="btn" data-go="tasks">去参与赚分</button><button class="btn green" data-go="mall">去兑换权益</button></div>';
+    h += '<div class="hero-actions rv"><button class="btn" data-go="tasks">去参与赚分</button><button class="btn green" data-go="mall">去兑换权益</button></div>';
     h += '</section>';
 
     h += band();
 
     // 01 年度贡献值
     h += '<section class="block">' + secHead(1, 6, '年度贡献值', 'ANNUAL');
-    h += '<div class="contrib-total"><span class="num">' + fmtNum(annual) + '</span><span class="heavy">分</span><span class="mono">= 三大板块之和</span></div>';
-    h += '<div class="bar" style="height:16px">' + LSL.SECTIONS.map(function (s) { return annual ? '<i class="' + s.key + '" style="width:' + (m.sections[s.key] / annual * 100) + '%"></i>' : ''; }).join('') + '</div>';
+    h += '<div class="contrib-total rv">' + fxNum('num', fmtNum(annual), 'annual-' + m.id + '-' + annual) + '<span class="heavy">分</span><span class="mono">= 三大板块之和</span></div>';
+    h += '<div class="bar rv" style="height:16px">' + LSL.SECTIONS.map(function (s) { return annual ? '<i class="' + s.key + '" style="--w:' + (m.sections[s.key] / annual * 100) + '%"></i>' : ''; }).join('') + '</div>';
     h += '<div class="contrib-rows">' + LSL.SECTIONS.map(function (s) {
-      return '<div class="contrib-row"><i class="dot ' + s.key + '"></i><span class="nm">' + s.name + ' <span class="en">' + s.en + '</span></span><span class="num">' + (m.sections[s.key] || 0) + '</span></div>';
+      var v = m.sections[s.key] || 0;
+      return '<div class="contrib-row rv"><i class="dot ' + s.key + '"></i><span class="nm">' + s.name + ' <span class="en">' + s.en + '</span></span>' + fxNum('num', v, 'sec-' + m.id + '-' + s.key + '-' + v, FX_SEC[s.key]) + '</div>';
     }).join('') + '</div>';
     h += '<p class="mono" style="margin-top:10px;letter-spacing:.08em">兑换只扣可用积分，年度贡献值不扣减</p>';
     h += '</section>';
@@ -102,22 +115,22 @@
     // 02 三大板块 · 怎么积分
     h += '<section class="block">' + secHead(2, 6, '三大板块 · 怎么积分', 'HOW TO EARN');
     h += '<div class="rule-cards tilt">' + LSL.SECTIONS.map(function (s, i) {
-      return '<div class="card rule-card"><span class="idx">' + no(i) + '</span>' +
+      return '<div class="card rule-card rv"><span class="idx">' + no(i) + '</span>' +
         '<div class="en">X / ' + no(i) + ' · ' + s.en + '</div>' +
         '<h3><i class="dot ' + s.key + '"></i>' + s.name + '</h3>' +
         '<p class="what">' + esc(s.what) + '</p>' +
         '<ul>' + s.rules.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>' +
         '<p class="verify">核验依据：' + esc(s.verify) + '</p>' +
-        '<div class="mine"><span>本店该板块累计</span><span class="num">' + (m.sections[s.key] || 0) + '</span></div></div>';
+        '<div class="mine"><span>本店该板块累计</span>' + fxNum('num', m.sections[s.key] || 0, 'rule-' + m.id + '-' + s.key + '-' + (m.sections[s.key] || 0), FX_SEC[s.key]) + '</div></div>';
     }).join('') + '</div></section>';
 
     // 03 商圈动态面板
     h += '<section class="block">' + secHead(3, 6, '商圈动态', esc(p.month));
-    h += '<div class="panel-box">';
-    h += '<div class="mono">WHAT\'S NEW · ' + esc(p.month) + '</div>';
+    h += '<div class="panel-box rv">';
+    h += '<div class="mono"><i class="live"></i>WHAT\'S NEW · ' + esc(p.month) + '</div>';
     h += '<h3><span class="marker">' + esc(p.title) + '</span></h3>';
-    h += '<div class="metrics">' + p.metrics.map(function (x) {
-      return '<div><div class="num">' + esc(x.value) + '</div><div class="unit">' + esc(x.unit) + '</div><div class="lbl">' + esc(x.label) + '</div></div>';
+    h += '<div class="metrics">' + p.metrics.map(function (x, k) {
+      return '<div>' + fxNum('num', esc(x.value), 'metric-' + k + '-' + x.value) + '<div class="unit">' + esc(x.unit) + '</div><div class="lbl">' + esc(x.label) + '</div></div>';
     }).join('') + '</div>';
     h += p.notices.length ? '<ul class="notices">' + p.notices.map(function (n, i) { return '<li><span class="n">' + no(i) + '</span><span>' + esc(n.text) + '</span></li>'; }).join('') + '</ul>' : '<div class="empty">暂无公告</div>';
     h += '</div></section>';
@@ -131,7 +144,7 @@
     // 05 本月兑换权益
     h += '<section class="block">' + secHead(5, 6, '本月兑换权益', '<a data-go="mall">积分商城 →</a>');
     h += '<div class="reward-list">' + rewards.map(function (r, i) {
-      return '<div class="card reward ' + (i % 2 ? 't2' : 't1') + '" data-redeem="' + r.id + '">' +
+      return '<div class="card rv reward ' + (i % 2 ? 't2' : 't1') + '" data-redeem="' + r.id + '">' +
         '<div class="body"><h4>' + esc(r.name) + '</h4><div class="sub">剩余 ' + r.stock + ' 份 · ' + esc(r.category) + '</div><div class="state">' + shortfall(m, r) + '</div></div>' +
         '<div class="cost"><div class="num">' + r.cost + '</div><div class="mono">POINTS</div></div></div>';
     }).join('') + '</div></section>';
@@ -159,7 +172,7 @@
   function taskCard(t, i) {
     var my = me();
     var pend = LSL.db().claims.filter(function (c) { return c.taskId === t.id && c.merchantId === my.id && c.status === 'pending'; }).length;
-    return '<div class="card task"><span class="idx">' + no(i) + '</span>' +
+    return '<div class="card task rv"><span class="idx">' + no(i) + '</span>' +
       '<div class="top">' + chip(t.section) + '<span class="chip plain">' + esc(t.form) + '</span></div>' +
       '<h4>' + esc(t.title) + '</h4><p class="desc">' + esc(t.desc) + '</p>' +
       '<div class="foot"><div class="pts"><div class="num">' + esc(t.pointsText || (t.points + ' 分')) + '</div><div class="verify">核验：' + esc(t.verify) + '</div></div>' +
@@ -200,7 +213,7 @@
     h += '<div class="card t1" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><div><div class="mono">AVAILABLE</div><div class="heavy">可用积分</div></div><div class="num" style="font-size:44px">' + fmtNum(m.points) + '</div></div>';
     h += '<div class="mall-grid tilt">' + list.map(function (r, i) {
       var can = r.stock > 0 && m.points >= r.cost;
-      return '<div class="card mall-card"><div class="cover"><span class="mono">' + esc(r.category) + '</span><span class="num">' + no(i) + '</span></div>' +
+      return '<div class="card mall-card rv"><div class="cover"><span class="mono">' + esc(r.category) + '</span><span class="num">' + no(i) + '</span></div>' +
         '<h4>' + esc(r.name) + '</h4><p class="sub">' + esc(r.desc) + '</p>' +
         '<div class="cost"><span class="num">' + r.cost + '<small class="mono"> PTS</small></span><span class="mono">余 ' + r.stock + '</span></div>' +
         '<div style="font-size:11px;font-weight:800;margin-bottom:8px">' + shortfall(m, r) + '</div>' +
@@ -233,7 +246,7 @@
     if (!rows.length) return '<div class="empty">暂无积分记录</div>';
     return '<ul class="ledger">' + rows.map(function (r) {
       var tag = r.section ? chip(r.section) : '<span class="chip plain">' + (r.type === 'spend' ? '兑换' : '其他') + '</span>';
-      return '<li><div class="t"><b>' + esc(r.title) + '</b><small>' + tag + fmtDate(r.createdAt) + '</small></div><div class="v ' + (r.points > 0 ? 'plus' : 'minus') + '">' + (r.points > 0 ? '+' : '') + r.points + '</div></li>';
+      return '<li class="rv"><div class="t"><b>' + esc(r.title) + '</b><small>' + tag + fmtDate(r.createdAt) + '</small></div><div class="v ' + (r.points > 0 ? 'plus' : 'minus') + '">' + (r.points > 0 ? '+' : '') + r.points + '</div></li>';
     }).join('') + '</ul>';
   }
 
@@ -255,7 +268,7 @@
 
     h += secHead(1, 2, '选择已入驻门店', '演示用');
     h += '<div class="bind-list">' + list.map(function (x) {
-      return '<button class="card bind-item' + (m && m.id === x.id ? ' on' : '') + '" data-pick="' + x.id + '"><span><b>' + esc(x.name) + '</b><small>' + esc(x.category) + ' · ' + esc(x.code) + '</small></span><span class="num" style="font-size:24px">' + fmtNum(x.points) + '</span></button>';
+      return '<button class="card rv bind-item' + (m && m.id === x.id ? ' on' : '') + '" data-pick="' + x.id + '"><span><b>' + esc(x.name) + '</b><small>' + esc(x.category) + ' · ' + esc(x.code) + '</small></span><span class="num" style="font-size:24px">' + fmtNum(x.points) + '</span></button>';
     }).join('') + '</div>';
 
     h += secHead(2, 2, '新商户 · 申请入驻');
@@ -305,7 +318,7 @@
         var fd = new FormData(e.target);
         var r = LSL.submitClaim({ merchantId: me().id, taskId: tid, amount: fd.get('amount'), note: fd.get('note'), image: img });
         if (!r.ok) return toast(r.msg);
-        close(); toast('已提交，等待审核'); render();
+        close(); LSLFX.burst($screen); toast('已提交，等待审核'); render();
       });
     });
   }
@@ -323,7 +336,7 @@
       el.querySelector('#doRedeem').addEventListener('click', function () {
         var res = LSL.redeem(me().id, rid);
         if (!res.ok) return toast(res.msg);
-        close(); toast('兑换成功，运营将尽快联系你'); render();
+        close(); LSLFX.burst($screen); toast('兑换成功，运营将尽快联系你'); render();
       });
     });
   }
@@ -369,7 +382,7 @@
   });
 
   // 后台改动（另一个标签页）实时同步
-  LSL.onChange(function (src) { if (src === 'remote' && !document.querySelector('.mask')) { var y = $page.scrollTop; render(); $page.scrollTop = y; } });
+  LSL.onChange(function (src) { if (src === 'remote' && !document.querySelector('.mask')) { var y = $page.scrollTop; render({ quiet: true }); $page.scrollTop = y; } });
 
   // 首次进入：默认绑定第一家门店，方便演示
   if (!LSL.currentId()) LSL.setCurrent(LSL.db().merchants[0].id);

@@ -5,7 +5,10 @@
   var $side = document.getElementById('side');
   var $main = document.getElementById('main');
   var cur = (location.hash || '#review').slice(1);
-  var fxPlayed = false;
+  function fxNum(cls, val, key, colors) {
+    return '<span class="' + cls + '" data-fx data-fx-key="' + esc(key) + '" data-fx-step="2" data-fx-duration="2000"' + (colors ? ' data-fx-colors="' + colors + '"' : '') + '><span class="fx-line">' + val + '</span></span>';
+  }
+  var FX_SEC = { donation: '#ea5520,#ea5520,#141414', synergy: '#8fc31f,#c8f04a,#141414', community: '#1597a6,#1597a6,#141414' };
 
   var MENU = [
     { key: 'review', name: '审核中心', en: 'REVIEW' },
@@ -27,8 +30,8 @@
   function mName(id) { var m = LSL.find('merchants', id); return m ? m.name : '（已删除）'; }
   function toast(msg) { var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 1800); }
   function head(i, label, title, right) {
-    var fx = fxPlayed ? '' : ' data-fx';
-    return '<div class="sec-head"><span class="mono"><b>' + pad(i + 1) + ' / ' + pad(MENU.length) + '</b> · ' + esc(MENU[i].en) + '</span><span class="mono">' + (right || '') + '</span></div>' +
+    var fx = ' data-fx data-fx-key="title-' + MENU[i].key + '"';
+    return '<div class="sec-head rv"><span class="mono"><b>' + pad(i + 1) + ' / ' + pad(MENU.length) + '</b> · ' + esc(MENU[i].en) + '</span><span class="mono">' + (right || '') + '</span></div>' +
       '<h1 class="a-title"' + fx + '><span class="fx-line"><span class="marker">' + esc(title || label) + '</span></span></h1>';
   }
 
@@ -66,12 +69,13 @@
     }).join('');
   }
 
-  function render() {
+  function render(opts) {
+    opts = opts || {};
     if (!MENU.some(function (x) { return x.key === cur; })) cur = 'review';
     renderSide();
     var i = MENU.findIndex(function (x) { return x.key === cur; });
     $main.innerHTML = VIEWS[cur](i);
-    if (!fxPlayed) { fxPlayed = true; LSLFX.run($main); }
+    LSLFX.run($main, { instant: !!opts.quiet });
   }
 
   /* ---------- 审核中心 ---------- */
@@ -83,27 +87,27 @@
     var h = head(i, '审核中心', null, apps.length + claims.length + ' 项待处理');
 
     h += '<div class="a-sub">入驻申请 <span class="mono">' + apps.length + ' PENDING</span></div>';
-    h += apps.length ? '<table class="tbl"><tr><th>门店</th><th>业态</th><th>联系人</th><th>提交时间</th><th>操作</th></tr>' + apps.map(function (a) {
+    h += apps.length ? '<table class="tbl rv"><tr><th>门店</th><th>业态</th><th>联系人</th><th>提交时间</th><th>操作</th></tr>' + apps.map(function (a) {
       return '<tr><td><b>' + esc(a.name) + '</b></td><td>' + esc(a.category) + '</td><td>' + esc(a.contact) + ' <small>' + esc(a.phone) + '</small></td><td><small>' + fmtDate(a.createdAt) + '</small></td>' +
         '<td><div class="ops"><button class="btn sm" data-app-pass="' + a.id + '">通过</button><button class="btn sm ghost" data-app-reject="' + a.id + '">拒绝</button></div></td></tr>';
-    }).join('') + '</table>' : '<div class="card empty">暂无待审核入驻申请</div>';
+    }).join('') + '</table>' : '<div class="card empty rv">暂无待审核入驻申请</div>';
 
     h += '<div class="a-sub">积分申报审核 <span class="mono">' + claims.length + ' PENDING</span></div>';
-    h += claims.length ? '<table class="tbl"><tr><th>商户</th><th>所属板块</th><th>参与内容</th><th>材料</th><th>发放分值</th><th>操作</th></tr>' + claims.map(function (c) {
+    h += claims.length ? '<table class="tbl rv"><tr><th>商户</th><th>所属板块</th><th>参与内容</th><th>材料</th><th>发放分值</th><th>操作</th></tr>' + claims.map(function (c) {
       var hint = c.section === 'donation' && c.amount ? '<br><small>捐赠 ' + c.amount + ' 元，原值不改则按年度累计余额自动折算</small>' : '';
       return '<tr><td><b>' + esc(mName(c.merchantId)) + '</b><br><small>' + fmtDate(c.createdAt) + '</small></td><td>' + chip(c.section) + '</td>' +
         '<td>' + esc(c.title) + hint + '</td>' +
         '<td>' + (c.image ? '<img class="thumb" src="' + c.image + '" data-view="' + c.id + '" alt="凭证" />' : '') + '<small>' + esc(c.note || '—') + '</small></td>' +
         '<td><input class="inline" type="number" min="0" value="' + c.points + '" id="pts_' + c.id + '" /></td>' +
         '<td><div class="ops"><button class="btn sm" data-pass="' + c.id + '">通过发放</button><button class="btn sm ghost" data-reject="' + c.id + '">退回</button></div></td></tr>';
-    }).join('') + '</table>' : '<div class="card empty">暂无待审核申报</div>';
+    }).join('') + '</table>' : '<div class="card empty rv">暂无待审核申报</div>';
 
     h += '<div class="a-sub">最近处理 <span class="mono">退款 / 误发可撤回</span></div>';
-    h += done.length ? '<table class="tbl"><tr><th>商户</th><th>板块</th><th>内容</th><th>分值</th><th>状态</th><th>操作</th></tr>' + done.map(function (c) {
+    h += done.length ? '<table class="tbl rv"><tr><th>商户</th><th>板块</th><th>内容</th><th>分值</th><th>状态</th><th>操作</th></tr>' + done.map(function (c) {
       var st = { approved: '已发放', rejected: '已退回', revoked: '已撤回' }[c.status];
       return '<tr><td>' + esc(mName(c.merchantId)) + '</td><td>' + chip(c.section) + '</td><td>' + esc(c.title) + (c.reason ? '<br><small>' + esc(c.reason) + '</small>' : '') + '</td><td class="num">' + c.points + '</td>' +
         '<td><span class="status ' + c.status + '">' + st + '</span></td><td>' + (c.status === 'approved' ? '<button class="btn sm ghost" data-revoke="' + c.id + '">撤回积分</button>' : '') + '</td></tr>';
-    }).join('') + '</table>' : '<div class="card empty">暂无记录</div>';
+    }).join('') + '</table>' : '<div class="card empty rv">暂无记录</div>';
     return h;
   }
 
@@ -113,7 +117,7 @@
     var list = db.merchants.slice().sort(function (a, b) { return LSL.annual(b) - LSL.annual(a); });
     var h = head(i, '商户管理', null, list.length + ' 家商户');
     h += '<div class="a-sub">全部商户档案 <button class="btn sm" data-add-merchant>＋ 新增商户</button></div>';
-    h += '<table class="tbl"><tr><th>编号</th><th>门店</th><th>联系人</th><th>可用积分</th>' + LSL.SECTIONS.map(function (s) { return '<th>' + s.name + '</th>'; }).join('') + '<th>年度贡献</th><th>等级</th></tr>' + list.map(function (m) {
+    h += '<table class="tbl rv"><tr><th>编号</th><th>门店</th><th>联系人</th><th>可用积分</th>' + LSL.SECTIONS.map(function (s) { return '<th>' + s.name + '</th>'; }).join('') + '<th>年度贡献</th><th>等级</th></tr>' + list.map(function (m) {
       var a = LSL.annual(m), lv = LSL.level(a);
       return '<tr><td class="mono">' + esc(m.code) + '</td><td><b>' + esc(m.name) + '</b><br><small>' + esc(m.category) + '</small></td><td>' + esc(m.contact) + '<br><small>' + esc(m.phone) + '</small></td>' +
         '<td class="num">' + fmtNum(m.points) + '</td>' + LSL.SECTIONS.map(function (s) { return '<td class="num" style="color:' + s.color + '">' + (m.sections[s.key] || 0) + '</td>'; }).join('') +
@@ -138,14 +142,14 @@
     h += '<button class="btn" type="submit">保存面板</button></form>';
 
     h += '<div class="a-sub">公告 <button class="btn sm" data-notice-add>＋ 新增公告</button></div>';
-    h += p.notices.length ? '<table class="tbl">' + p.notices.map(function (n, k) {
+    h += p.notices.length ? '<table class="tbl rv">' + p.notices.map(function (n, k) {
       return '<tr><td class="mono">' + pad(k + 1) + '</td><td>' + esc(n.text) + '</td><td><div class="ops"><button class="btn sm green" data-notice-edit="' + n.id + '">编辑</button><button class="btn sm ghost" data-notice-del="' + n.id + '">删除</button></div></td></tr>';
-    }).join('') + '</table>' : '<div class="card empty">暂无公告</div>';
+    }).join('') + '</table>' : '<div class="card empty rv">暂无公告</div>';
     h += '</div>';
 
     // 预览
     h += '<div><div class="mono" style="margin-bottom:10px">PREVIEW · 商户端效果</div><div class="panel-box" style="max-width:360px">';
-    h += '<div class="mono">WHAT\'S NEW · ' + esc(p.month) + '</div><h3><span class="marker">' + esc(p.title) + '</span></h3>';
+    h += '<div class="mono"><i class="live"></i>WHAT\'S NEW · ' + esc(p.month) + '</div><h3><span class="marker">' + esc(p.title) + '</span></h3>';
     h += '<div class="metrics">' + p.metrics.map(function (x) { return '<div><div class="num">' + esc(x.value) + '</div><div class="unit">' + esc(x.unit) + '</div><div class="lbl">' + esc(x.label) + '</div></div>'; }).join('') + '</div>';
     h += '<ul class="notices">' + p.notices.map(function (n, k) { return '<li><span class="n">' + pad(k + 1) + '</span><span>' + esc(n.text) + '</span></li>'; }).join('') + '</ul>';
     h += '</div></div></div>';
@@ -157,7 +161,7 @@
     var db = LSL.db();
     var h = head(i, '积分任务', '本月参与内容', db.tasks.filter(function (t) { return t.active; }).length + ' 项开放中');
     h += '<div class="a-sub">全部参与内容 <button class="btn sm" data-task-edit="">＋ 新建任务</button></div>';
-    h += '<table class="tbl"><tr><th>内容</th><th>所属板块</th><th>参与形式</th><th>积分值</th><th>核验方式</th><th>状态</th><th>操作</th></tr>' + db.tasks.map(function (t) {
+    h += '<table class="tbl rv"><tr><th>内容</th><th>所属板块</th><th>参与形式</th><th>积分值</th><th>核验方式</th><th>状态</th><th>操作</th></tr>' + db.tasks.map(function (t) {
       return '<tr><td><b>' + esc(t.title) + '</b><br><small>' + esc(t.desc) + '</small></td><td>' + chip(t.section) + '</td><td>' + esc(t.form) + '</td>' +
         '<td><span class="num">' + t.points + '</span><br><small>' + esc(t.pointsText) + '</small></td><td><small>' + esc(t.verify) + '</small></td>' +
         '<td><span class="status ' + (t.active ? 'active' : 'off') + '">' + (t.active ? '开放' : '停用') + '</span></td>' +
@@ -171,7 +175,7 @@
     var db = LSL.db();
     var h = head(i, '权益兑换', null, db.rewards.filter(function (r) { return r.active; }).length + ' 项上架中');
     h += '<div class="a-sub">权益列表 <button class="btn sm" data-reward-edit="">＋ 新增权益</button></div>';
-    h += '<table class="tbl"><tr><th>权益</th><th>分类</th><th>所需积分</th><th>库存</th><th>状态</th><th>操作</th></tr>' + db.rewards.map(function (r) {
+    h += '<table class="tbl rv"><tr><th>权益</th><th>分类</th><th>所需积分</th><th>库存</th><th>状态</th><th>操作</th></tr>' + db.rewards.map(function (r) {
       return '<tr><td><b>' + esc(r.name) + '</b><br><small>' + esc(r.desc) + '</small></td><td>' + esc(r.category) + '</td><td class="num">' + r.cost + '</td><td class="num">' + r.stock + '</td>' +
         '<td><span class="status ' + (r.active ? 'active' : 'off') + '">' + (r.active ? '上架' : '下架') + '</span></td>' +
         '<td><div class="ops"><button class="btn sm green" data-reward-edit="' + r.id + '">编辑</button><button class="btn sm ghost" data-reward-toggle="' + r.id + '">' + (r.active ? '下架' : '上架') + '</button><button class="btn sm ghost" data-del="rewards:' + r.id + '">删除</button></div></td></tr>';
@@ -185,14 +189,14 @@
     var list = db.orders.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
     var h = head(i, '兑换订单', null, '待处理 → 处理中 → 已完成');
     h += '<div class="a-grid c3" style="margin-bottom:10px">' + ORDER_FLOW.map(function (s, k) {
-      return '<div class="card kpi t' + (k + 1) + '"><span class="idx">' + pad(k + 1) + '</span><div class="num">' + list.filter(function (o) { return o.status === s; }).length + '</div><div class="lbl">' + s + '</div></div>';
+      return '<div class="card kpi rv t' + (k + 1) + '"><span class="idx">' + pad(k + 1) + '</span><div>' + (function (n) { return fxNum('num', n, 'ord-' + s + '-' + n); })(list.filter(function (o) { return o.status === s; }).length) + '</div><div class="lbl">' + s + '</div></div>';
     }).join('') + '</div>';
     h += '<div class="a-sub">订单列表</div>';
-    h += list.length ? '<table class="tbl"><tr><th>单号</th><th>商户</th><th>权益</th><th>积分</th><th>时间</th><th>状态</th><th>操作</th></tr>' + list.map(function (o) {
+    h += list.length ? '<table class="tbl rv"><tr><th>单号</th><th>商户</th><th>权益</th><th>积分</th><th>时间</th><th>状态</th><th>操作</th></tr>' + list.map(function (o) {
       var k = ORDER_FLOW.indexOf(o.status), next = ORDER_FLOW[k + 1];
       return '<tr><td class="mono">' + esc(o.no) + '</td><td>' + esc(mName(o.merchantId)) + '</td><td>' + esc(o.name) + '</td><td class="num">' + o.cost + '</td><td><small>' + fmtDate(o.createdAt) + '</small></td>' +
         '<td><span class="status s-' + o.status + '">' + o.status + '</span></td><td>' + (next ? '<button class="btn sm" data-order="' + o.id + ':' + next + '">标记' + next + '</button>' : '<small>—</small>') + '</td></tr>';
-    }).join('') + '</table>' : '<div class="card empty">暂无订单</div>';
+    }).join('') + '</table>' : '<div class="card empty rv">暂无订单</div>';
     return h;
   }
 
@@ -213,7 +217,7 @@
       kpi('申报通过率', rate, '%', 'APPROVAL RATE') + kpi('入驻商户', db.merchants.length, '家', 'MERCHANTS') + '</div>';
 
     h += '<div class="a-sub">三大板块贡献分布</div><div class="card dist">' + LSL.SECTIONS.map(function (s) {
-      return '<div class="dist-row"><b>' + s.name + '</b><div class="bar"><i class="' + s.key + '" style="width:' + (bySec[s.key] / total * 100) + '%"></i></div><span class="num">' + bySec[s.key] + '</span></div>';
+      return '<div class="dist-row rv"><b>' + s.name + '</b><div class="bar rv"><i class="' + s.key + '" style="--w:' + (bySec[s.key] / total * 100) + '%"></i></div><span>' + fxNum('num', bySec[s.key], 'dist-' + s.key + '-' + bySec[s.key], FX_SEC[s.key]) + '</span></div>';
     }).join('') + '</div>';
 
     h += '<div class="a-sub">三大板块积分规则</div><table class="tbl"><tr><th>板块</th><th>记录内容</th><th>怎么积分</th><th>核验依据</th></tr>' + LSL.SECTIONS.map(function (s) {
@@ -228,7 +232,7 @@
     }).join('') + '</table>';
     return h;
   }
-  function kpi(lbl, v, unit, en) { return '<div class="card kpi"><div class="num">' + v + '<em>' + unit + '</em></div><div class="lbl">' + lbl + '</div><div class="mono">' + en + '</div></div>'; }
+  function kpi(lbl, v, unit, en) { return '<div class="card kpi rv"><div class="num">' + fxNum('fxw', v, 'kpi-' + lbl + '-' + v) + '<em>' + unit + '</em></div><div class="lbl">' + lbl + '</div><div class="mono">' + en + '</div></div>'; }
 
   var VIEWS = { review: vReview, merchants: vMerchants, panel: vPanel, tasks: vTasks, rewards: vRewards, orders: vOrders, stats: vStats };
 
@@ -314,7 +318,7 @@
   document.getElementById('resetBtn').addEventListener('click', function () {
     if (confirm('恢复初始演示数据？当前所有改动将清空。')) { LSL.reset(); toast('已恢复'); render(); }
   });
-  LSL.onChange(function (src) { if (src === 'remote' && !document.querySelector('.a-modal')) render(); });
+  LSL.onChange(function (src) { if (src === 'remote' && !document.querySelector('.a-modal')) render({ quiet: true }); });
   window.addEventListener('hashchange', function () { cur = location.hash.slice(1); render(); });
 
   render();
