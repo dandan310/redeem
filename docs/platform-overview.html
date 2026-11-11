@@ -195,7 +195,7 @@ footer{padding:36px 0 56px;color:var(--muted);font-size:12.5px}
         </div>
         <div class="box">订单<small>保洁单、接送单、布草单……</small></div>
       </div>
-      <p class="note">同一家酒店在保洁机构、车队、洗涤厂里各有一份档案，互不相通。</p>
+      <p class="note">酒店记录带「所属机构」，只在本机构内可见。多家机构服务同一家酒店时，每家都要各建一条；洗涤还另用一张「客户」表。详见基础数据一节。</p>
     </div>
 
     <div class="model">
@@ -203,10 +203,10 @@ footer{padding:36px 0 56px;color:var(--muted);font-size:12.5px}
       <div class="nest">
         <div class="cap">平台（我们）</div>
         <div class="row">
-          <div class="box plat">景区<small>管理员维护，先有四姑娘山</small></div>
+          <div class="box plat">景区<small>管理员维护，先有四姑娘山；酒店的可选属性</small></div>
           <div class="box plat">应用<small>保洁 / 接送 / 洗涤……</small></div>
         </div>
-        <div class="box plat">酒店档案<small>归景区，全平台一店一份</small></div>
+        <div class="box plat">酒店档案<small>平台级，全平台一店一份；可标注所属景区</small></div>
         <div class="arrow">服务关系：酒店 + 应用 → 只能对接一家租户</div>
         <div class="nest">
           <div class="cap">租户（众包商，自助注册 + 平台审核）</div>
@@ -227,7 +227,9 @@ footer{padding:36px 0 56px;color:var(--muted);font-size:12.5px}
   <h3>已确定的业务规则</h3>
   <div class="tablebox"><table>
     <tr><th>规则</th><th>内容</th></tr>
-    <tr><td>酒店归景区</td><td>酒店档案是平台级的，不属于任何众包商。</td></tr>
+    <tr><td>酒店是平台级档案</td><td>不属于任何众包商，全平台一店一份。</td></tr>
+    <tr><td>景区是酒店的可选属性</td><td>共享保洁要求酒店必须标注景区；洗涤、接送目前不要求，可以留空。</td></tr>
+    <tr><td>众包商可服务多个景区</td><td>众包商申请服务景区，平台审核；名下的酒店、保洁员、派单和报表都可按景区划分。</td></tr>
     <tr><td>众包商自己对接酒店</td><td>酒店已有档案则绑定，没有则新建。</td></tr>
     <tr><td>一店一家</td><td>一家酒店的保洁只能对接一家众包商；换绑由平台处理。</td></tr>
     <tr><td>手动派单</td><td>酒店录单，众包商派单员指派保洁员，候选人按评分从高到低排。</td></tr>
@@ -302,7 +304,7 @@ footer{padding:36px 0 56px;color:var(--muted);font-size:12.5px}
   <p>基础数据是各应用开展业务前要维护的档案。第一版只迁保洁相关和通用部分。</p>
   <div class="tablebox"><table>
     <tr><th>所属应用</th><th>档案</th><th>主要内容</th><th>第一版</th></tr>
-    <tr><td>客房保洁</td><td>酒店</td><td>名称、电话、状态；约 110 家</td><td><span class="pill p-v1">第一版</span> 提为平台级</td></tr>
+    <tr><td>客房保洁</td><td>酒店</td><td>名称、电话、状态；约 110 家；带所属机构</td><td><span class="pill p-v1">第一版</span> 提为平台级，去掉所属机构，增加可选的所属景区</td></tr>
     <tr><td></td><td>房间</td><td>房号、楼层、单价、默认设置</td><td><span class="pill p-v1">第一版</span></td></tr>
     <tr><td></td><td>酒店人员</td><td>负责人 / 普通，绑定到酒店</td><td><span class="pill p-v1">第一版</span></td></tr>
     <tr><td></td><td>保洁员</td><td>绑定用户账号、状态</td><td><span class="pill p-v1">第一版</span> 加评分、服务景区</td></tr>
@@ -310,9 +312,28 @@ footer{padding:36px 0 56px;color:var(--muted);font-size:12.5px}
     <tr><td>洗涤厂</td><td>客户、计价项、布草</td><td>约 130 家客户；一客一价；带 RFID 的布草档案</td><td><span class="pill p-later">预留</span></td></tr>
     <tr><td>电商 / 点餐</td><td>商家、商品分类、商品、会员</td><td>商品规格、上下架、会员余额和存酒</td><td><span class="pill p-later">预留</span></td></tr>
     <tr><td>通用</td><td>账单标签、打印规则</td><td>账单分类；打印模板</td><td><span class="pill p-later">预留</span></td></tr>
-    <tr><td>新增</td><td>景区</td><td>名称、区域、状态</td><td><span class="pill p-new">新增</span></td></tr>
+    <tr><td>新增</td><td>景区（服务区域）</td><td>名称、类型、所在地、状态</td><td><span class="pill p-new">新增</span></td></tr>
+    <tr><td></td><td>租户服务景区</td><td>众包商 ↔ 景区，多对多，需平台审核</td><td><span class="pill p-new">新增</span></td></tr>
     <tr><td></td><td>服务关系</td><td>酒店 + 应用 → 租户，一店一家</td><td><span class="pill p-new">新增</span></td></tr>
     <tr><td></td><td>价格表</td><td>众包商按酒店、房型、保洁类型定价</td><td><span class="pill p-new">新增</span></td></tr>
+  </table></div>
+  <h3>现有问题：酒店信息冗余</h3>
+  <div class="grid g3">
+    <div class="card"><h4>同机构内共用</h4><p>一个机构同时开通保洁和接送时，两个应用用的是同一批酒店，不重复。</p></div>
+    <div class="card"><h4>跨机构各建一份</h4><p>酒店记录带「所属机构」，别的机构看不到。保洁和接送由不同机构承接时，同一家酒店要各建一条。</p></div>
+    <div class="card"><h4>洗涤另有一张表</h4><p>洗涤用的是「客户管理」，和酒店表没有关联，同一家酒店又是一条独立记录。</p></div>
+  </div>
+  <p>后果：酒店改电话或换负责人要改多处；无法回答一家酒店用了哪几项服务、总共多少单；酒店人员的账号只能挂在一个机构下。新模式下众包商、车队、洗涤厂是各自独立的租户，这种重复会成为常态，所以<b>酒店必须提为平台级档案</b>：全平台一店一份，各服务商通过「服务关系」对接它。</p>
+
+  <h3>景区怎么处理</h3>
+  <p>景区描述的是酒店在哪里，不是保洁业务独有的东西。所以把它放在酒店档案上作为可选属性，是否必填由应用决定。</p>
+  <div class="tablebox"><table>
+    <tr><th>问题</th><th>处理方式</th></tr>
+    <tr><td>只有保洁需要景区</td><td>酒店档案的「所属景区」可以为空。每个应用有一个开关「是否按景区管理」：共享保洁开启，洗涤、接送关闭。</td></tr>
+    <tr><td>保洁如何保证有景区</td><td>众包商对接酒店时校验两点：酒店已标注景区；该景区在众包商获批的服务景区内。不满足不能建立保洁服务关系。</td></tr>
+    <tr><td>旧酒店数据</td><td>迁移时景区留空。只有要开通共享保洁的酒店才需要补填。</td></tr>
+    <tr><td>一个众包商做多个景区</td><td>众包商与景区是多对多，新增景区需申请并由平台审核。名下酒店按景区分组；保洁员可设置服务哪些景区；派单时只列出服务该酒店所在景区的保洁员；派单员可限定只管某几个景区；报表可按景区拆分。</td></tr>
+    <tr><td>以后其他业务到外地开展</td><td>景区在系统里作为「服务区域」的一种类型来建，以后可以增加城市、片区等类型。洗涤或接送需要按区域管理时，打开该应用的开关即可，不用改表结构。</td></tr>
   </table></div>
   <p class="note">接送里的「车队对接酒店」、洗涤里的「客户」，实际上都是酒店。重构后它们统一指向平台的酒店档案。</p>
 </section>
@@ -356,9 +377,13 @@ footer{padding:36px 0 56px;color:var(--muted);font-size:12.5px}
     <div data-l="优化">众包商自助注册，平台审核；景区由管理员维护。</div>
     <div data-l="思路">机构改为租户，数据按租户自动隔离；审核通过后自动建管理员账号、默认角色并开通应用。</div>
     <div class="t">酒店一店一档</div>
-    <div data-l="现状">同一家酒店在不同机构、不同业务里重复建档。</div>
+    <div data-l="现状">酒店带所属机构，跨机构要重复建；洗涤另用客户表。</div>
     <div data-l="优化">酒店是平台级档案；用「服务关系」记录它的每项服务对接哪家。</div>
     <div data-l="思路">服务关系 = 酒店 + 应用 → 租户，同一酒店同一应用只允许一条生效，保证一店一家；以后接送、洗涤直接复用。</div>
+    <div class="t">景区</div>
+    <div data-l="现状">没有景区概念。</div>
+    <div data-l="优化">保洁按景区管理；一个众包商可服务多个景区；其他应用不受影响。</div>
+    <div data-l="思路">景区是酒店的可选属性，是否必填由应用开关决定。系统里按「服务区域」建模，景区是其中一种类型，方便以后扩展到其他地区和业务。</div>
     <div class="t">账号</div>
     <div data-l="现状">一个用户只能属于一个机构；默认密码是手机号后六位。</div>
     <div data-l="优化">同一手机号可在多个租户下工作；手机号一键登录或验证码登录。</div>
@@ -452,7 +477,7 @@ footer{padding:36px 0 56px;color:var(--muted);font-size:12.5px}
     <div class="layer">
       <div class="name">通用业务能力<small>各应用共用</small></div>
       <div class="chips">
-        <span class="chip newc">景区</span>
+        <span class="chip newc">景区（服务区域）</span>
         <span class="chip newc">酒店档案与服务关系</span>
         <span class="chip">服务人员与身份</span>
         <span class="chip newc">定价</span>
@@ -498,6 +523,7 @@ footer{padding:36px 0 56px;color:var(--muted);font-size:12.5px}
   <div class="tablebox"><table>
     <tr><th>预留点</th><th>第一版怎么做</th><th>以后接入新应用时</th></tr>
     <tr><td>应用是功能包</td><td>保洁的菜单、手机端模板、默认角色、消息模板都登记在「共享保洁」这个应用下</td><td>新增一个应用及其模板，租户勾选即可用</td></tr>
+    <tr><td>景区按应用开关</td><td>景区是酒店的可选属性；共享保洁开启「按景区管理」</td><td>洗涤、接送默认不用；到外地开展时打开开关，或增加新的区域类型</td></tr>
     <tr><td>服务关系带应用标识</td><td>一店一家的规则按「酒店 + 应用」判断</td><td>车队、洗涤厂对接酒店直接用同一张表</td></tr>
     <tr><td>人员身份通用</td><td>保洁员 = 用户 + 「保洁员」身份及评分</td><td>司机是另一种身份，共用账号、评分、在手单量</td></tr>
     <tr><td>流程骨架通用</td><td>派单、状态流转、评价、对账做成各应用可调用的公共能力</td><td>接送单、布草单只写自己的单据内容</td></tr>
