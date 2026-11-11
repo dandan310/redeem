@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>酒店档案平台化规则确认</title>
+<style>
+:root{--paper:#f4f6f7;--surface:#fff;--ink:#18252d;--muted:#5b6b75;--line:#d5dde2;--accent:#0b6e69;--accent-soft:#dff0ee;--warn:#a85a00;--warn-soft:#fbeeda;
+--font-body:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;--font-display:"Songti SC","STSong","Noto Serif SC","SimSun",serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--paper:#11181c;--surface:#19232a;--ink:#e6edf0;--muted:#9aa9b2;--line:#2e3c45;--accent:#58c2b9;--accent-soft:#16332f;--warn:#e9a657;--warn-soft:#3a2a12}}
+:root[data-theme="dark"]{color-scheme:dark;--paper:#11181c;--surface:#19232a;--ink:#e6edf0;--muted:#9aa9b2;--line:#2e3c45;--accent:#58c2b9;--accent-soft:#16332f;--warn:#e9a657;--warn-soft:#3a2a12}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.7;font-variant-numeric:tabular-nums}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}header{padding:40px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--accent);font-weight:600}
+h1{font-family:var(--font-display);font-size:32px;line-height:1.25;margin:8px 0 10px;text-wrap:balance}
+h2{font-family:var(--font-display);font-size:23px;margin:38px 0 8px}h3{font-size:16px;margin:26px 0 10px}
+p{margin:8px 0;max-width:46em}.lede{color:var(--muted)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.card h4{margin:0 0 4px;font-size:15px}.card p{margin:0;font-size:13.5px;color:var(--muted)}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:600px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12.5px;background:var(--paper)}tr:last-child td{border-bottom:0}
+ul{padding-left:20px;max-width:46em}li{margin:4px 0}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:44px 1fr;gap:4px 12px;margin:10px 0}
+.rule .n{grid-row:1/4;width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
+.rule h4{margin:4px 0 2px;font-size:15.5px}.rule .do{font-size:14.5px}.rule .why{font-size:13.5px;color:var(--muted)}
+.tag{display:inline-block;font-size:12px;padding:0 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);margin-left:8px;font-weight:400;white-space:nowrap;vertical-align:1px}
+.tag.later{border-color:var(--warn);color:var(--warn);border-style:dashed}
+.closing{border-left:4px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+footer{padding:30px 0 50px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="eyebrow">平台重构 · 请合伙人确认</div><h1>酒店档案平台化规则确认</h1><p class="lede">旧系统里同一家酒店会被多次建档。重构后酒店要提为平台级档案，由多家服务商共用，这带来一批需要事先定好的规则。下面每条规则都给了建议做法，请逐条确认或提出修改。</p></div></header>
+<main class="wrap">
+<h2>一、现有问题：酒店信息冗余</h2><p>旧系统的酒店记录带「所属机构」，只在本机构内可见。分三种情况：</p><div class="grid"><div class="card"><h4>同机构内共用</h4><p>一个机构同时开通保洁和接送时，两个应用用同一批酒店，不重复。这部分没有问题。</p></div><div class="card"><h4>跨机构各建一份</h4><p>酒店记录带「所属机构」，别的机构看不到。保洁和接送由不同机构承接时，同一家酒店要各建一条。</p></div><div class="card"><h4>洗涤另有一张表</h4><p>洗涤用的是「客户管理」，和酒店表没有关联。同一家酒店在洗涤里又是一条独立记录。</p></div></div>
+<h3>举例</h3><p>一家民宿的保洁、接送、洗涤由三家承接时，它在系统里是三条互不关联的记录。</p><div class="tablebox"><table><tr><th>服务</th><th>承接方</th><th>记录所在位置</th></tr><tr><td>保洁</td><td>众包商 A</td><td>A 机构的酒店表</td></tr><tr><td>接送</td><td>车队 B</td><td>B 机构的酒店表</td></tr><tr><td>洗涤</td><td>洗涤厂 C</td><td>洗涤的客户表</td></tr></table></div>
+<h3>带来的后果</h3><ul><li>酒店改电话、换负责人，要在多处分别修改，容易漏改。</li><li>无法回答一家酒店用了我们哪几项服务、一个月总共多少单。</li><li>酒店人员的账号只能挂在一个机构下，用另一项服务要另开账号或另走入口。</li><li>新模式下众包商、车队、洗涤厂都是独立入驻的租户，上面的重复会从个别情况变成常态。</li></ul>
+<h2>二、提为平台级之后</h2><ul><li>酒店档案归平台，全平台一店一份，不属于任何服务商。</li><li>服务商通过「服务关系」对接酒店：酒店 + 应用 → 服务商。同一家酒店的保洁、接送、洗涤可以分别对接三家。</li><li>酒店只有一套账号，手机端按已对接的服务显示入口；下单后单据自动进入对应的服务商。</li><li>服务商只看到自己那项业务的单据、价格和账目；平台能看到全貌。</li></ul>
+<h2>三、需要确认的规则</h2><p>共 18 条，每条给出建议做法和理由。</p>
+<h3>一、建档与查重</h3>
+<div class="rule"><div class="n">1</div><h4>谁可以新建酒店<span class="tag">第一版</span></h4><div class="do">服务商在对接时新建；平台管理员也可以建。第一版不开放酒店自助注册。</div><div class="why">酒店由服务商去谈，由服务商建档最顺。自助注册会带来审核工作量。</div></div>
+<div class="rule"><div class="n">2</div><h4>新建时怎么查重<span class="tag">第一版</span></h4><div class="do">新建前按名称和电话强制查重。有疑似重复时必须先查看已有档案，确认不是同一家才能新建。</div><div class="why">这是防止再次出现多份档案的唯一关口。</div></div>
+<div class="rule"><div class="n">3</div><h4>发现重复后怎么办<span class="tag">第一版</span></h4><div class="do">由平台管理员合并：保留一份，另一份的服务关系和历史单据转到保留的那份上。</div><div class="why">查重拦不住全部情况，例如名称写法不同。</div></div>
+<h3>二、信息维护</h3>
+<div class="rule"><div class="n">4</div><h4>酒店基本信息谁能改<span class="tag">第一版</span></h4><div class="do">名称、电话、地址、所属景区只允许酒店负责人和平台管理员修改。服务商不能改。</div><div class="why">多家服务商共用一份档案，谁都能改会互相覆盖。</div></div>
+<div class="rule"><div class="n">5</div><h4>服务商想记自己的信息怎么办<span class="tag">第一版</span></h4><div class="do">联系人、备注、结算方式等写在服务关系上，只有该服务商自己可见。</div><div class="why">各家和酒店的对接人、结算约定本来就不同。</div></div>
+<div class="rule"><div class="n">6</div><h4>房间和房型谁维护<span class="tag">第一版</span></h4><div class="do">房间属于酒店档案，由酒店负责人或对接保洁的众包商维护。价格不在房间上，由服务商各自定价。</div><div class="why">目前只有保洁用到房间，不会有多家同时修改的情况。</div></div>
+<div class="rule"><div class="n">7</div><h4>景区由谁填<span class="tag">第一版</span></h4><div class="do">新建酒店时由服务商选择，之后只有平台管理员能改。保洁要求必填，洗涤、接送可留空。</div><div class="why">景区决定众包商能否对接这家酒店，不能随意改。</div></div>
+<h3>三、服务关系</h3>
+<div class="rule"><div class="n">8</div><h4>保洁一店一家<span class="tag">第一版</span></h4><div class="do">一家酒店的保洁只能对接一家众包商。已被对接的酒店，其他众包商无法再对接。</div><div class="why">已确认的规则，这里列出以便完整。</div></div>
+<div class="rule"><div class="n">9</div><h4>接送、洗涤是否也一店一家<span class="tag later">迁移时</span></h4><div class="do">做成每个应用各自的开关。保洁开启；接送和洗涤等迁移时再定。</div><div class="why">旧系统里一家酒店可以挂到多个车队下，不宜现在就限制。</div></div>
+<div class="rule"><div class="n">10</div><h4>对接是否需要酒店确认<span class="tag">第一版</span></h4><div class="do">需要。服务商发起对接后，酒店负责人扫码或点击确认才生效。</div><div class="why">防止服务商抢先占住酒店却不实际服务。</div></div>
+<div class="rule"><div class="n">11</div><h4>怎么解除或更换服务商<span class="tag">第一版</span></h4><div class="do">酒店或服务商任一方提出，平台管理员处理。未完成的单据要先完成或取消。历史单据和账目留在原服务商名下，新服务商看不到。</div><div class="why">一店一家的前提下，换绑必须有出口，同时要保护原服务商的数据。</div></div>
+<div class="rule"><div class="n">12</div><h4>长期没有单据的服务关系<span class="tag">第一版</span></h4><div class="do">连续 60 天没有单据时提醒平台管理员，由管理员决定是否解除。不自动解除。</div><div class="why">配合第 10 条防止占坑；天数可调整。</div></div>
+<h3>四、账号与可见范围</h3>
+<div class="rule"><div class="n">13</div><h4>酒店的第一个账号怎么来<span class="tag">第一版</span></h4><div class="do">服务商对接时填写酒店负责人的手机号，负责人确认对接的同时完成注册。之后由负责人添加本店其他人员。</div><div class="why">和第 10 条的确认是同一步，酒店不用单独注册。</div></div>
+<div class="rule"><div class="n">14</div><h4>酒店账号归谁<span class="tag">第一版</span></h4><div class="do">归酒店，不归任何服务商。一套账号可使用该酒店已对接的全部服务。</div><div class="why">旧系统里酒店账号挂在某个机构下，这是要改掉的。</div></div>
+<div class="rule"><div class="n">15</div><h4>服务商能否看到酒店的其他服务商<span class="tag">第一版</span></h4><div class="do">不能。服务商只知道自己和这家酒店的关系。</div><div class="why">避免服务商之间互相打探客户。</div></div>
+<div class="rule"><div class="n">16</div><h4>酒店停用和服务终止的区别<span class="tag">第一版</span></h4><div class="do">平台停用酒店：全部服务都不能下单。服务商终止服务关系：只影响该项服务。</div><div class="why">两种操作的发起人和影响范围不同，需要分开。</div></div>
+<h3>五、旧数据迁移</h3>
+<div class="rule"><div class="n">17</div><h4>旧酒店数据怎么并入<span class="tag later">随各业务线迁移</span></h4><div class="do">各业务线迁移时，把该业务线的酒店（约 110 家）或洗涤客户（约 130 家）导入并和已有档案比对。系统按名称和电话给出疑似重复清单，由我方人工确认后合并。</div><div class="why">旧数据里名称写法不统一，不能完全自动合并。</div></div>
+<div class="rule"><div class="n">18</div><h4>旧酒店的景区<span class="tag later">随各业务线迁移</span></h4><div class="do">迁移时留空。只有要开通共享保洁的酒店才补填。</div><div class="why">洗涤、接送目前没有景区的概念。</div></div>
+<h2>四、说明</h2><div class="closing">第 10、11、12 条会直接影响众包商的使用体验，建议重点讨论。第 9 条可以留到接送、洗涤迁移时再定。</div>
+</main>
+<footer><div class="wrap">数字为调研时的近似值。</div></footer>
+</body>
+</html>
