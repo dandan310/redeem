@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>麓商联商户积分系统 · 第一版功能清单与待对齐事项</title>
+<title>麓商联商户积分系统 · 第一版功能清单</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -80,34 +80,34 @@
 <div class="page">
 
   <div class="kicker">LUSHANG · 商户积分系统 · V1</div>
-  <h1>第一版功能清单与待对齐事项</h1>
-  <div class="sub">根据 11 月 10 日会议整理：上半部分是第一版要做的功能，下半部分是开发前还需要双方确认的事项</div>
+  <h1>第一版功能清单</h1>
+  <div class="sub">根据 11 月 10 日会议整理，列出第一版要做的功能点</div>
   <div class="meta">
     <span class="tag">商户端 10 个模块</span>
     <span class="tag g">运营后台 8 个模块</span>
-    <span class="tag o">待对齐 12 条</span>
+    <span class="tag o">会上新增 3 项</span>
   </div>
 
   <div class="divider"></div>
 
   <h2>零、第一版范围</h2>
-  <div class="h2note">先独立上线、跑通流程，麓湖+ 对接放到第二期</div>
+  <div class="h2note">先以手机端 H5 上线、跑通流程，后期接入麓湖+ 小程序</div>
   <div class="scope">
     <div class="node">
       <div class="node-t">第一版做</div>
       <ul>
-        <li>独立网页（H5），商户扫码或点链接进入，微信里直接打开</li>
-        <li><b>自有手机号登录</b>，不依赖麓湖+ 账号</li>
+        <li><b>手机端 H5</b>：适配手机屏幕，扫码或点链接进入，微信内、手机浏览器都能打开</li>
+        <li><b>手机号 + 短信验证码登录</b>，不依赖麓湖+ 账号</li>
         <li>商户端 + 运营后台，审核、兑换、活动由积分系统运营人员负责</li>
         <li>会上新增：<b>后台改统计数据、工作人员展示、合作意向留资</b></li>
       </ul>
     </div>
     <div class="node dash">
-      <div class="node-t">第一版暂不做</div>
+      <div class="node-t">后期规划</div>
       <ul>
-        <li>接入麓湖+ 小程序、与麓湖+ 账号打通（第二期）</li>
-        <li>微信手机号一键授权（需麓湖+ 配合，第二期）</li>
-        <li>线上支付</li>
+        <li><b>接入麓湖+ 小程序</b>：同一套页面放进麓湖+ 里打开</li>
+        <li>与麓湖+ 账号打通，支持微信手机号快捷登录</li>
+        <li>第一版以手机号作为账号标识，接入后商户账号和积分直接沿用，无需重新注册</li>
       </ul>
     </div>
   </div>
@@ -118,8 +118,9 @@
   <div class="node">
     <div class="node-t">1. 登录与注册</div>
     <ul>
-      <li><b>手机号 + 短信验证码</b>登录；登录一次 30 天内免登录</li>
-      <li>首次进入：先看介绍 → 填写门店信息（可传门头照）→ 身份确认 → 成为会员</li>
+      <li><b>手机号 + 短信验证码</b>登录，验证码 60 秒限发、每日限次，防恶意刷取</li>
+      <li>登录后 30 天免登录，每次打开自动续期；换手机或清缓存后重新验证，账号和积分不变</li>
+      <li>首次进入：先看介绍 → 填写门店信息（可传门头照）→ 身份确认（运营审核或门店专属二维码）→ 成为会员</li>
       <li>再次进入：自动识别，直接进入个人积分</li>
       <li>游客可先浏览介绍、活动、商学院；参与活动、兑换时再要求登录</li>
     </ul>
@@ -212,7 +213,7 @@
   </div>
   <div class="node">
     <div class="node-t">2. 商户管理</div>
-    <ul><li>商户档案、积分与三大板块分项、门店成员（店长 / 店员）、改绑手机号</li></ul>
+    <ul><li>商户档案、积分与三大板块分项、门店成员（店长 / 店员）、改绑手机号</li><li>移除店员后其登录立即失效，可强制下线、查看最近登录时间</li></ul>
   </div>
   <div class="node">
     <div class="node-t">3. 活动与积分任务</div>
@@ -246,85 +247,7 @@
     </ul>
   </div>
 
-  <h2 class="o">三、还需要对齐的事项</h2>
-  <div class="h2note">绿色字是我们的建议，确认或修改即可</div>
-
-  <div class="item"><div class="num">1</div><div class="q">
-    <div class="qtext">首页三项统计数据：手动填写，还是系统自动统计？</div>
-    <div class="follow">分别是哪三项？每项<b>点击后跳到哪个页面</b>？</div>
-    <div class="rec">建议：能自动统计的自动算，后台保留“手动覆盖”开关，方便对外展示时调整。</div>
-  </div></div>
-
-  <div class="item"><div class="num">2</div><div class="q">
-    <div class="qtext">工作人员展示：展示哪些人、哪些信息？</div>
-    <div class="follow">放在“关于我们”里还是单独入口？<b>联系方式公开到什么程度</b>（个人手机 / 工作电话 / 企业微信）？</div>
-    <div class="rec">建议：放在“关于我们”里，联系方式用工作电话或企业微信二维码，不公开个人手机。</div>
-  </div></div>
-
-  <div class="item"><div class="num">3</div><div class="q">
-    <div class="qtext">合作留资：需要哪些字段？谁来接收、怎么通知？</div>
-    <div class="follow">合作类型有哪些选项？新留资通知谁：<b>短信、邮件，还是只在后台看</b>？</div>
-    <div class="rec">建议：后台查看 + 给指定负责人发短信提醒。</div>
-  </div></div>
-
-  <div class="item"><div class="num">4</div><div class="q">
-    <div class="qtext">登录方式：只用短信验证码，还是加“本机号码一键登录”？</div>
-    <div class="follow">一键登录在网页里需接入运营商服务，<b>只在手机流量下可用，按次收费</b>；短信签名用哪个公司名称、谁提供资质。</div>
-    <div class="rec">建议：第一版只用短信验证码，费用低、兼容性好。</div>
-  </div></div>
-
-  <div class="item"><div class="num">5</div><div class="q">
-    <div class="qtext">注册要填什么？照片是否必填？</div>
-    <div class="follow">门店名称、业态、联系人、铺位号……哪些必填？门头照 / 产品照是否必须上传？</div>
-    <div class="rec">建议：照片选填，必填项越少，注册率越高。</div>
-  </div></div>
-
-  <div class="item"><div class="num">6</div><div class="q">
-    <div class="qtext">怎么确认“这个人确实是这家店的”？</div>
-    <div class="follow">运营人工审核 / 每家店一个专属二维码 / 邀请码，选哪种？<b>门店清单由谁提供</b>？</div>
-    <div class="rec">建议：每家店发一个专属二维码，扫码即绑定；清单外的新店走人工审核。</div>
-  </div></div>
-
-  <div class="item"><div class="num">7</div><div class="q">
-    <div class="qtext">游客（未注册）能看到哪些内容？</div>
-    <div class="follow">首页、商学院、关于我们是否对所有人开放？</div>
-    <div class="rec">建议：介绍类内容全开放，积分、报名、兑换需登录。</div>
-  </div></div>
-
-  <div class="item"><div class="num">8</div><div class="q">
-    <div class="qtext">商学院报名：站内表单还是跳外部链接？</div>
-    <div class="follow">是否限名额？报名后要不要提醒？到场签到用什么方式（现场扫码 / 工作人员核销）？</div>
-    <div class="rec">建议：站内报名 + 现场扫码签到，签到后自动发 30 分。</div>
-  </div></div>
-
-  <div class="item"><div class="num">9</div><div class="q">
-    <div class="qtext">积分规则还缺的两点：年底是否清零？等级有什么权益？</div>
-    <div class="follow">年度贡献值、可用积分到年底分别怎么处理？200 / 500 / 1000 / 2000 四个等级各对应什么？</div>
-  </div></div>
-
-  <div class="item"><div class="num">10</div><div class="q">
-    <div class="qtext">消息通知：审核结果、兑换进度、课程提醒，用什么方式通知商户？</div>
-    <div class="follow">网页无法直接发微信消息。</div>
-    <div class="rec">建议：重要节点发短信，其余在“个人中心”里显示提醒。</div>
-  </div></div>
-
-  <div class="item"><div class="num">11</div><div class="q">
-    <div class="qtext">视觉与图片规范</div>
-    <div class="follow">按商联调性改版，范围是全站；<b>验收人和修改轮次</b>；轮播图尺寸、张数上限、上传是否需要审核；图片和文案由谁提供。</div>
-    <div class="rec">建议：设计稿含两轮修改；轮播图统一 16:9，最多 5 张。</div>
-  </div></div>
-
-  <div class="item"><div class="num">12</div><div class="q">
-    <div class="qtext">上线部署、排期与维护</div>
-    <div class="follow">使用麓湖已备案域名下的子域名（名称？谁解析？）；服务器开在<b>麓湖的云账号</b>下；短信与服务器费用归属；上线时间、试点门店；维护范围与响应时间。</div>
-  </div></div>
-
-  <div class="later">
-    <div class="later-t">第二期 · 与麓湖+ 打通（本期预留，不开发）</div>
-    <p>第一版以<b>手机号</b>作为账号标识。第二期只需麓湖+ 提供：小程序入口 + 一个过渡页（微信手机号快捷登录）+ 带签名的手机号传递。届时已注册商户的账号和积分无缝沿用，无需重新注册。</p>
-  </div>
-
-  <div class="foot">麓坊中心 · 麓商联　|　2026.11.11 整理，供双方确认</div>
+  <div class="foot">麓坊中心 · 麓商联　|　2026.11.11 整理</div>
 
 </div>
 </body>
