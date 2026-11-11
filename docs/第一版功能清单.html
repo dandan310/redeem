@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麓商联商户积分系统 · 第一版功能清单与待对齐事项</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px 48px; background: #F4F3EE;
+    font-family: 'PingFang SC', 'Roboto', 'Segoe UI', Arial, sans-serif;
+    color: #1A1B1C; font-size: 14px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 880px; margin: 0 auto; background: #FFFFFF; border-radius: 16px; padding: 36px 40px 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .kicker { font-size: 12px; letter-spacing: 1px; color: #6B7280; text-transform: uppercase; }
+  h1 { font-size: 26px; font-weight: 600; margin: 6px 0 0; letter-spacing: 0.3px; }
+  .sub { font-size: 13px; color: #6B7280; margin-top: 8px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .tag { font-size: 12px; color: #245C76; background: rgba(139,200,234,0.22); padding: 4px 10px; border-radius: 999px; }
+  .tag.g { color: #256B58; background: rgba(148,216,195,0.26); }
+  .tag.o { color: #8A4B12; background: rgba(245,178,107,0.22); }
+  .divider { height: 1px; background: #E6E5E0; margin: 26px 0 4px; }
+
+  h2 { font-size: 16px; font-weight: 600; margin: 30px 0 4px; padding-left: 12px; border-left: 3px solid #8BC8EA; }
+  h2.g { border-left-color: #94D8C3; }
+  h2.o { border-left-color: #F5B26B; }
+  .h2note { font-size: 12px; color: #6B7280; padding-left: 15px; margin-bottom: 10px; }
+
+  .scope { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .scope .node { margin-top: 0; }
+
+  .node { margin-top: 10px; padding: 11px 14px; border-radius: 12px; background: #FFFFFF; border: 0.5px solid rgba(0,0,0,0.09); }
+  .node.dash { border: 1px dashed #B9BCC0; background: rgba(0,0,0,0.018); }
+  .node.new { border: 1px solid rgba(245,178,107,0.7); background: rgba(245,178,107,0.06); }
+  .node-t { font-size: 14px; font-weight: 600; }
+  .node-d { font-size: 12.5px; color: #4B5563; margin-top: 4px; }
+  .node ul { margin: 6px 0 0; padding-left: 18px; font-size: 12.5px; color: #4B5563; }
+  .node li { margin: 2px 0; }
+  .node li b { color: #1A1B1C; font-weight: 600; }
+
+  .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; }
+  .pill.new { color: #8A4B12; background: rgba(245,178,107,0.25); }
+  .pill.done { color: #256B58; background: rgba(148,216,195,0.3); }
+
+  .item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px dashed #ECEBE6; }
+  .item:last-child { border-bottom: none; }
+  .num { flex: 0 0 26px; height: 26px; border-radius: 50%; background: rgba(245,178,107,0.25); color: #8A4B12; font-size: 13px; font-weight: 600; text-align: center; line-height: 26px; }
+  .q { flex: 1 1 auto; min-width: 0; }
+  .qtext { font-size: 14.5px; font-weight: 600; }
+  .follow { font-size: 12.5px; color: #6B7280; margin-top: 5px; }
+  .follow b { color: #1A1B1C; font-weight: 600; }
+  .rec { font-size: 12.5px; color: #256B58; margin-top: 4px; }
+
+  .flow { margin-top: 12px; border-radius: 14px; padding: 14px 16px; background: rgba(139,200,234,0.07); border: 0.5px solid rgba(139,200,234,0.35); font-size: 13px; }
+  .flow b { font-weight: 600; }
+  .arrow { color: #9CA3AF; }
+
+  .later { margin-top: 30px; padding: 16px 20px; border-radius: 14px; background: rgba(0,0,0,0.025); border: 1px dashed #C9CBCF; }
+  .later-t { font-size: 14.5px; font-weight: 600; }
+  .later p { font-size: 12.5px; color: #4B5563; margin: 6px 0 0; }
+
+  .legend { font-size: 11.5px; color: #6B7280; margin-top: 10px; }
+  .foot { font-size: 11.5px; color: #9CA3AF; margin-top: 26px; text-align: center; }
+
+  @media (max-width: 560px) {
+    body { padding: 12px 10px 32px; }
+    .page { padding: 22px 18px 26px; border-radius: 12px; }
+    h1 { font-size: 21px; }
+    .scope { grid-template-columns: 1fr; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; border-radius: 0; padding: 14mm 12mm; max-width: none; }
+    h2 { break-after: avoid; }
+    .item, .node { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="kicker">LUSHANG · 商户积分系统 · V1</div>
+  <h1>第一版功能清单与待对齐事项</h1>
+  <div class="sub">根据 11 月 10 日会议整理：上半部分是第一版要做的功能，下半部分是开发前还需要双方确认的事项</div>
+  <div class="meta">
+    <span class="tag">商户端 10 个模块</span>
+    <span class="tag g">运营后台 8 个模块</span>
+    <span class="tag o">待对齐 12 条</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>零、第一版范围</h2>
+  <div class="h2note">先独立上线、跑通流程，麓湖+ 对接放到第二期</div>
+  <div class="scope">
+    <div class="node">
+      <div class="node-t">第一版做</div>
+      <ul>
+        <li>独立网页（H5），商户扫码或点链接进入，微信里直接打开</li>
+        <li><b>自有手机号登录</b>，不依赖麓湖+ 账号</li>
+        <li>商户端 + 运营后台，审核、兑换、活动由积分系统运营人员负责</li>
+        <li>会上新增：<b>后台改统计数据、工作人员展示、合作意向留资</b></li>
+      </ul>
+    </div>
+    <div class="node dash">
+      <div class="node-t">第一版暂不做</div>
+      <ul>
+        <li>接入麓湖+ 小程序、与麓湖+ 账号打通（第二期）</li>
+        <li>微信手机号一键授权（需麓湖+ 配合，第二期）</li>
+        <li>线上支付</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>一、商户端功能</h2>
+  <div class="h2note">标 <span class="pill new">新增</span> 的是会上新提的需求，其余为演示版已有、正式版完善</div>
+
+  <div class="node">
+    <div class="node-t">1. 登录与注册</div>
+    <ul>
+      <li><b>手机号 + 短信验证码</b>登录；登录一次 30 天内免登录</li>
+      <li>首次进入：先看介绍 → 填写门店信息（可传门头照）→ 身份确认 → 成为会员</li>
+      <li>再次进入：自动识别，直接进入个人积分</li>
+      <li>游客可先浏览介绍、活动、商学院；参与活动、兑换时再要求登录</li>
+    </ul>
+    <div class="flow">
+      <b>首次</b> 扫码 <span class="arrow">→</span> 关于我们 <span class="arrow">→</span> 手机号登录 <span class="arrow">→</span> 选择 / 填写门店 + 照片 <span class="arrow">→</span> 身份确认 <span class="arrow">→</span> 成为会员<br>
+      <b>再次</b> 扫码 <span class="arrow">→</span> 自动登录 <span class="arrow">→</span> 首页看到自己的积分
+    </div>
+  </div>
+
+  <div class="node">
+    <div class="node-t">2. 首页</div>
+    <ul>
+      <li><b>图片展示区</b>：轮播图，后台自助换图</li>
+      <li>积分卡：可用积分、本月获得、年度等级（登录后显示）</li>
+      <li><b>三项统计数值</b>：数值后台可改，点击跳转到对应页面</li>
+      <li>三大板块怎么积分、本月活动、本月可兑换权益</li>
+      <li>一级入口：关于我们 / 商学院 / 数据，入口精简，一步直达</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="node-t">3. 活动参与与积分申报</div>
+    <ul>
+      <li>本月活动列表，按公益捐赠 / 商圈共生 / 社区参与三大板块筛选</li>
+      <li>完成后提交申报、上传凭证，审核通过自动发分</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="node-t">4. 积分兑换</div>
+    <ul>
+      <li>权益列表，显示所需积分、剩余份数、“还差多少分”</li>
+      <li>兑换后扣积分、扣库存，生成订单，商户可查看进度</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="node-t">5. 个人中心 · 我的积分</div>
+    <ul>
+      <li>积分明细、我的申报、我的兑换、门店信息</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="node-t">6. 数据板块</div>
+    <ul>
+      <li>商户看自己的：积分构成、参与活动次数、年度等级进度</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="node-t">7. 商学院</div>
+    <ul>
+      <li><b>导师</b>：照片、头衔、擅长方向、一句话介绍</li>
+      <li><b>往期回顾</b>：现场照片、视频、按场次翻看</li>
+      <li><b>本月课程</b>：时间、主题、导师、剩余名额，在线报名；到场签到后按规则发分</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="node-t">8. 关于我们</div>
+    <ul>
+      <li>麓商联介绍</li>
+      <li>“遇到什么事找谁”：选事项 → 显示对应联系人，可一键拨号或加微信</li>
+    </ul>
+  </div>
+
+  <div class="node new">
+    <div class="node-t">9. 工作人员展示 <span class="pill new">新增</span></div>
+    <ul>
+      <li>工作人员卡片：照片、姓名、职务、负责事项、联系方式（电话 / 企业微信二维码）</li>
+      <li>和“关于我们”的联系人打通：同一份人员资料，后台维护一次</li>
+    </ul>
+  </div>
+
+  <div class="node new">
+    <div class="node-t">10. 合作意向留资（页面底部） <span class="pill new">新增</span></div>
+    <ul>
+      <li>页面最下方“聊一次合作”表单：姓名、公司 / 品牌、手机号、合作类型、留言</li>
+      <li>提交前勾选同意隐私说明；防重复提交、防刷</li>
+    </ul>
+  </div>
+
+  <h2 class="g">二、运营后台功能</h2>
+  <div class="h2note">给积分系统的运营人员用，日常内容都能自己改，不用找技术</div>
+
+  <div class="node">
+    <div class="node-t">1. 审核中心</div>
+    <ul><li>入驻 / 注册审核，积分申报审核（可改分值、退回、撤回已发积分）</li></ul>
+  </div>
+  <div class="node">
+    <div class="node-t">2. 商户管理</div>
+    <ul><li>商户档案、积分与三大板块分项、门店成员（店长 / 店员）、改绑手机号</li></ul>
+  </div>
+  <div class="node">
+    <div class="node-t">3. 活动与积分任务</div>
+    <ul><li>新建 / 编辑 / 停用活动，设置板块、形式、分值、核验方式</li></ul>
+  </div>
+  <div class="node">
+    <div class="node-t">4. 权益兑换与订单</div>
+    <ul><li>权益上下架、库存；订单流转：待处理 → 处理中 → 已完成</li></ul>
+  </div>
+  <div class="node new">
+    <div class="node-t">5. 内容管理 <span class="pill new">新增统计数据修改</span></div>
+    <ul>
+      <li><b>首页统计数值</b>：名称、数值、单位、点击跳转目标；可选“系统自动统计”或“手动填写”</li>
+      <li>图片展示区、商圈动态与公告、关于我们文案</li>
+      <li>商学院：导师、往期回顾、课程、报名名单与签到</li>
+    </ul>
+  </div>
+  <div class="node new">
+    <div class="node-t">6. 工作人员管理 <span class="pill new">新增</span></div>
+    <ul><li>新增 / 编辑 / 排序 / 隐藏工作人员，设置负责事项</li></ul>
+  </div>
+  <div class="node new">
+    <div class="node-t">7. 合作留资管理 <span class="pill new">新增</span></div>
+    <ul><li>查看、标记跟进状态（未联系 / 已联系 / 已合作）、导出 Excel；有新留资时提醒</li></ul>
+  </div>
+  <div class="node">
+    <div class="node-t">8. 数据统计与账号权限</div>
+    <ul>
+      <li>积分发放 / 消耗、三大板块分布、商户排行、活动参与情况</li>
+      <li>多个后台账号，按角色分权限，关键操作留日志</li>
+    </ul>
+  </div>
+
+  <h2 class="o">三、还需要对齐的事项</h2>
+  <div class="h2note">绿色字是我们的建议，确认或修改即可</div>
+
+  <div class="item"><div class="num">1</div><div class="q">
+    <div class="qtext">首页三项统计数据：手动填写，还是系统自动统计？</div>
+    <div class="follow">分别是哪三项？每项<b>点击后跳到哪个页面</b>？</div>
+    <div class="rec">建议：能自动统计的自动算，后台保留“手动覆盖”开关，方便对外展示时调整。</div>
+  </div></div>
+
+  <div class="item"><div class="num">2</div><div class="q">
+    <div class="qtext">工作人员展示：展示哪些人、哪些信息？</div>
+    <div class="follow">放在“关于我们”里还是单独入口？<b>联系方式公开到什么程度</b>（个人手机 / 工作电话 / 企业微信）？</div>
+    <div class="rec">建议：放在“关于我们”里，联系方式用工作电话或企业微信二维码，不公开个人手机。</div>
+  </div></div>
+
+  <div class="item"><div class="num">3</div><div class="q">
+    <div class="qtext">合作留资：需要哪些字段？谁来接收、怎么通知？</div>
+    <div class="follow">合作类型有哪些选项？新留资通知谁：<b>短信、邮件，还是只在后台看</b>？</div>
+    <div class="rec">建议：后台查看 + 给指定负责人发短信提醒。</div>
+  </div></div>
+
+  <div class="item"><div class="num">4</div><div class="q">
+    <div class="qtext">登录方式：只用短信验证码，还是加“本机号码一键登录”？</div>
+    <div class="follow">一键登录在网页里需接入运营商服务，<b>只在手机流量下可用，按次收费</b>；短信签名用哪个公司名称、谁提供资质。</div>
+    <div class="rec">建议：第一版只用短信验证码，费用低、兼容性好。</div>
+  </div></div>
+
+  <div class="item"><div class="num">5</div><div class="q">
+    <div class="qtext">注册要填什么？照片是否必填？</div>
+    <div class="follow">门店名称、业态、联系人、铺位号……哪些必填？门头照 / 产品照是否必须上传？</div>
+    <div class="rec">建议：照片选填，必填项越少，注册率越高。</div>
+  </div></div>
+
+  <div class="item"><div class="num">6</div><div class="q">
+    <div class="qtext">怎么确认“这个人确实是这家店的”？</div>
+    <div class="follow">运营人工审核 / 每家店一个专属二维码 / 邀请码，选哪种？<b>门店清单由谁提供</b>？</div>
+    <div class="rec">建议：每家店发一个专属二维码，扫码即绑定；清单外的新店走人工审核。</div>
+  </div></div>
+
+  <div class="item"><div class="num">7</div><div class="q">
+    <div class="qtext">游客（未注册）能看到哪些内容？</div>
+    <div class="follow">首页、商学院、关于我们是否对所有人开放？</div>
+    <div class="rec">建议：介绍类内容全开放，积分、报名、兑换需登录。</div>
+  </div></div>
+
+  <div class="item"><div class="num">8</div><div class="q">
+    <div class="qtext">商学院报名：站内表单还是跳外部链接？</div>
+    <div class="follow">是否限名额？报名后要不要提醒？到场签到用什么方式（现场扫码 / 工作人员核销）？</div>
+    <div class="rec">建议：站内报名 + 现场扫码签到，签到后自动发 30 分。</div>
+  </div></div>
+
+  <div class="item"><div class="num">9</div><div class="q">
+    <div class="qtext">积分规则还缺的两点：年底是否清零？等级有什么权益？</div>
+    <div class="follow">年度贡献值、可用积分到年底分别怎么处理？200 / 500 / 1000 / 2000 四个等级各对应什么？</div>
+  </div></div>
+
+  <div class="item"><div class="num">10</div><div class="q">
+    <div class="qtext">消息通知：审核结果、兑换进度、课程提醒，用什么方式通知商户？</div>
+    <div class="follow">网页无法直接发微信消息。</div>
+    <div class="rec">建议：重要节点发短信，其余在“个人中心”里显示提醒。</div>
+  </div></div>
+
+  <div class="item"><div class="num">11</div><div class="q">
+    <div class="qtext">视觉与图片规范</div>
+    <div class="follow">按商联调性改版，范围是全站；<b>验收人和修改轮次</b>；轮播图尺寸、张数上限、上传是否需要审核；图片和文案由谁提供。</div>
+    <div class="rec">建议：设计稿含两轮修改；轮播图统一 16:9，最多 5 张。</div>
+  </div></div>
+
+  <div class="item"><div class="num">12</div><div class="q">
+    <div class="qtext">上线部署、排期与维护</div>
+    <div class="follow">使用麓湖已备案域名下的子域名（名称？谁解析？）；服务器开在<b>麓湖的云账号</b>下；短信与服务器费用归属；上线时间、试点门店；维护范围与响应时间。</div>
+  </div></div>
+
+  <div class="later">
+    <div class="later-t">第二期 · 与麓湖+ 打通（本期预留，不开发）</div>
+    <p>第一版以<b>手机号</b>作为账号标识。第二期只需麓湖+ 提供：小程序入口 + 一个过渡页（微信手机号快捷登录）+ 带签名的手机号传递。届时已注册商户的账号和积分无缝沿用，无需重新注册。</p>
+  </div>
+
+  <div class="foot">麓坊中心 · 麓商联　|　2026.11.11 整理，供双方确认</div>
+
+</div>
+</body>
+</html>
