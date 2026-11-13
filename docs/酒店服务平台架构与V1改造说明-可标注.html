@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-doc-id="hotel-platform-v1" data-rev="0">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>酒店服务平台架构与V1改造说明</title>
+<style>
+:root{--paper:#f4f6f7;--surface:#fff;--ink:#18252d;--muted:#5b6b75;--line:#d5dde2;--accent:#0b6e69;--accent-soft:#dff0ee;--warn:#a85a00;--warn-soft:#fbeeda;
+--font-body:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;--font-display:"Songti SC","STSong","Noto Serif SC","SimSun",serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--paper:#11181c;--surface:#19232a;--ink:#e6edf0;--muted:#9aa9b2;--line:#2e3c45;--accent:#58c2b9;--accent-soft:#16332f;--warn:#e9a657;--warn-soft:#3a2a12}}
+:root[data-theme="dark"]{color-scheme:dark;--paper:#11181c;--surface:#19232a;--ink:#e6edf0;--muted:#9aa9b2;--line:#2e3c45;--accent:#58c2b9;--accent-soft:#16332f;--warn:#e9a657;--warn-soft:#3a2a12}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.7;font-variant-numeric:tabular-nums}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}header{padding:40px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--accent);font-weight:600}
+h1{font-family:var(--font-display);font-size:32px;line-height:1.25;margin:8px 0 10px;text-wrap:balance}
+h2{font-family:var(--font-display);font-size:23px;margin:38px 0 8px}h3{font-size:16px;margin:26px 0 10px}
+p{margin:8px 0;max-width:46em}.lede{color:var(--muted)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.card h4{margin:0 0 4px;font-size:15px}.card p{margin:0;font-size:13.5px;color:var(--muted)}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:600px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12.5px;background:var(--paper)}tr:last-child td{border-bottom:0}
+ul{padding-left:20px;max-width:46em}li{margin:4px 0}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:44px 1fr;gap:4px 12px;margin:10px 0}
+.rule .n{grid-row:1/4;width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
+.rule h4{margin:4px 0 2px;font-size:15.5px}.rule .do{font-size:14.5px}.rule .why{font-size:13.5px;color:var(--muted)}
+.tag{display:inline-block;font-size:12px;padding:0 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);margin-left:8px;font-weight:400;white-space:nowrap;vertical-align:1px}
+.tag.later{border-color:var(--warn);color:var(--warn);border-style:dashed}
+.closing{border-left:4px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+footer{padding:30px 0 50px;color:var(--muted);font-size:12.5px}
+.layers{display:grid;gap:10px;margin:12px 0}.layer{display:grid;grid-template-columns:130px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}
+.layer .name{font-weight:600;font-size:14px;border-right:1px solid var(--line);padding-right:10px}.layer .name small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{border:1.5px solid var(--line);border-radius:6px;padding:4px 10px;font-size:13px;background:var(--paper)}
+.chip.v1{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}.chip.later{border-style:dashed;color:var(--muted)}
+@media (max-width:560px){.layer{grid-template-columns:1fr}.layer .name{border-right:0;border-bottom:1px solid var(--line);padding:0 0 6px}}
+td:first-child{font-weight:600;white-space:nowrap}
+/* 标注功能 */
+mark.anno{background:var(--warn-soft);color:inherit;border-bottom:2px solid var(--warn);cursor:pointer;padding:1px 0}
+mark.anno.flash{outline:2px solid var(--accent);outline-offset:2px}
+.anno-panel{position:fixed;top:0;right:0;bottom:0;width:320px;background:var(--surface);border-left:1px solid var(--line);display:flex;flex-direction:column;z-index:20;font-size:13.5px}
+.anno-panel header{padding:14px 14px 10px;border-bottom:1px solid var(--line)}
+.anno-panel h2{font-family:var(--font-body);font-size:15px;margin:0 0 8px;border:0;padding:0}
+.anno-panel label{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+.anno-panel input,.anno-pop textarea{width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.anno-panel input:focus-visible,.anno-pop textarea:focus-visible,.anno-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.anno-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.anno-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:6px;padding:5px 10px;cursor:pointer}
+.anno-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+.anno-btn.danger{color:var(--warn);border-color:var(--warn)}
+.anno-list{overflow-y:auto;flex:1;padding:8px 10px;margin:0;list-style:none}
+.anno-list li{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:8px 0;cursor:pointer;max-width:none}
+.anno-list li:hover{border-color:var(--accent)}
+.anno-list .q{color:var(--muted);border-left:3px solid var(--warn);padding-left:8px;font-size:12.5px}
+.anno-list .t{margin-top:4px;white-space:pre-wrap;word-break:break-word}
+.anno-list .m{margin-top:4px;font-size:12px;color:var(--muted)}
+.anno-empty{color:var(--muted);padding:14px;font-size:13px}
+.anno-hint{font-size:12px;color:var(--muted);margin-top:8px}
+.anno-add{position:fixed;z-index:30;display:none}
+.anno-pop{position:fixed;z-index:31;display:none;width:300px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+.anno-pop textarea{height:92px;resize:vertical}
+.anno-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:6px;font-size:13px;z-index:40;display:none}
+@media (min-width:1100px){body{padding-right:320px}}
+@media (max-width:1099px){.anno-panel{position:static;width:auto;border-left:0;border-top:1px solid var(--line);max-height:none}.anno-list{max-height:none}}
+@media print{.anno-panel,.anno-add,.anno-pop,.anno-toast{display:none!important}body{padding-right:0}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="eyebrow">平台重构</div><h1>酒店服务平台架构与 V1 改造说明</h1><p class="lede">平台围绕酒店提供各类服务。服务机构入驻平台，各自维护自己的酒店，按开通的应用为酒店提供服务。第一版上线共享保洁，之后陆续接入接送、洗涤、维修、配餐等。</p></div></header>
+<main class="wrap">
+<h2>一、整体架构</h2><div class="layers">
+<div class="layer"><div class="name">平台<small>我们管理</small></div><div class="chips"><span class="chip ">机构管理</span><span class="chip ">应用管理</span><span class="chip ">区域（景区）</span><span class="chip ">字典与系统参数</span><span class="chip ">公众号 / 小程序 / 控制台模板</span><span class="chip ">全平台统计</span></div></div>
+<div class="layer"><div class="name">机构<small>入驻的服务商，数据互相隔离</small></div><div class="chips"><span class="chip ">开通的应用</span><span class="chip ">酒店、房间、酒店人员</span><span class="chip ">本机构人员与角色</span><span class="chip ">公众号 / 小程序</span><span class="chip ">控制台</span><span class="chip ">价格、订单、账目</span></div></div>
+<div class="layer"><div class="name">应用<small>机构按需开通</small></div><div class="chips"><span class="chip v1">共享保洁　V1</span><span class="chip later">酒店接送　后续</span><span class="chip later">洗涤　后续</span><span class="chip later">维修　后续</span><span class="chip later">配餐　后续</span></div></div>
+<div class="layer"><div class="name">使用入口<small>以手机为主</small></div><div class="chips"><span class="chip ">机构的公众号 / 小程序</span><span class="chip ">电脑管理后台</span></div></div>
+</div><h2>二、关键设计</h2><div class="tablebox"><table><tr><th>项</th><th>说明</th></tr><tr><td>机构</td><td>一家服务商就是一个机构。机构之间数据完全隔离，平台管理员可以查看全部。</td></tr><tr><td>应用</td><td>一个应用是一套完整的服务功能。机构可以开通多个应用，开通后对应的菜单、手机端入口、控制台组件自动出现。</td></tr><tr><td>酒店</td><td>由机构自己维护，属于机构的私有数据，其他机构看不到。同一机构开通多个应用时，共用同一批酒店。酒店人员的账号也在该机构下。</td></tr><tr><td>区域（景区）</td><td>区域由平台统一维护，景区是区域的一种类型，目前只有四姑娘山。区域是酒店上的一个属性：共享保洁要求必填，机构可按区域管理名下酒店和保洁员，一个机构可以服务多个区域；其他应用可以不填。以后在其他地方开展业务时，增加新的区域或区域类型即可。</td></tr><tr><td>公众号 / 小程序</td><td>每个机构可以对接并配置自己的公众号或小程序：账号参数、菜单、消息模板。菜单按机构开通的应用自动生成，机构可以再调整。酒店人员、保洁员从本机构的公众号或小程序进入。</td></tr><tr><td>控制台</td><td>每个机构有自己的控制台首页，由统计卡片、待办、快捷入口等组件拼成。平台按应用提供默认模板，机构可以自己增减和排列组件。电脑端和手机端各一套。</td></tr><tr><td>账号</td><td>同一个手机号可以在多个机构下工作，登录时选择机构。</td></tr></table></div>
+<h2>三、后续服务怎么接入</h2><p>各项服务的流程骨架相同：酒店下单 → 机构派给人 → 执行 → 酒店验收评价 → 月度对账。派单、评价、对账、消息提醒做成通用能力，新服务主要是定义自己的单据内容。</p><p>每新增一项服务就是新增一个应用，包含：</p><ul><li>后台菜单和权限</li><li>手机端页面和入口</li><li>公众号菜单模板和消息模板</li><li>控制台组件</li><li>默认角色</li></ul><p>机构勾选开通后即可使用，底座不用改。</p>
+<h2>四、V1 改造说明</h2><div class="tablebox"><table><tr><th>模块</th><th>怎么改</th><th>说明</th></tr><tr><td>技术底座</td><td>现有 Node 后端换成 Java 开源框架（ruoyi-vue-pro），数据库继续用 MySQL。</td><td>注入漏洞、密钥随代码存放、无测试等问题从底层解决；可随业务量扩展。</td></tr><tr><td>机构</td><td>后台手工开通改为机构自助注册、平台审核后自动开通。</td><td>数据隔离由框架自动完成，不再靠每个接口手写。</td></tr><tr><td>应用管理</td><td>保留。应用从「一组后台菜单」扩成完整功能包，包含手机端入口、公众号菜单模板、控制台组件、默认角色。</td><td>以后上维修、配餐等只需新增应用。</td></tr><tr><td>酒店</td><td>保留机构各自维护的方式。新增「所属区域（景区）」属性。</td><td>与现有做法一致，旧数据可直接迁移。</td></tr><tr><td>公众号 / 小程序</td><td>保留按机构配置。菜单和消息模板改为按开通的应用自动生成。</td><td>机构开通新应用后不用再手工配菜单。</td></tr><tr><td>控制台</td><td>保留「组件 + 组装」的做法。改为机构可自行调整，并增加手机端控制台。</td><td>现在只有电脑版，且由平台管理员统一拼装。</td></tr><tr><td>共享保洁</td><td>按现有流程重写：酒店录单、派单、完工、对账。</td><td>新增到场打卡、酒店验收、评价；派单时保洁员按评分排序；按酒店和房型定价并写入订单。</td></tr><tr><td>平台统计</td><td>新增。按区域（景区）、机构、月份汇总单量和金额，可导出。</td><td>作为第三方返点的依据；不做线上支付。</td></tr><tr><td>旧系统</td><td>迁移期间继续运行，其他业务线暂不动。</td><td>一条业务线在新平台验收后再切换。</td></tr></table></div>
+<h3>阶段与粗估工期</h3><div class="tablebox"><table><tr><th>阶段</th><th>工期</th></tr><tr><td>底座搭建</td><td>1 周</td></tr><tr><td>机构、应用、基础数据移植</td><td>3 周</td></tr><tr><td>手机端、公众号 / 小程序、控制台</td><td>3 周</td></tr><tr><td>保洁主数据：酒店、房间、保洁员、定价</td><td>2 周</td></tr><tr><td>保洁订单与评价</td><td>4 周</td></tr><tr><td>对账与统计</td><td>2 周</td></tr><tr><td>试点上线</td><td>2 周</td></tr><tr><td>合计</td><td>约 17 周</td></tr></table></div>
+<h3>第一版不做</h3><ul><li>接送、洗涤、维修、配餐等其他应用</li><li>线上支付</li><li>保洁员抢单、自动派单</li></ul>
+<h2>五、需要确认</h2><div class="rule"><div class="n">1</div><h4>机构自有小程序的发布方式</h4><div class="do">公众号可以直接按机构配置。小程序每个账号都要单独提交微信审核，同一套代码需要为每个机构各发布一次。建议第一版先支持机构自有公众号，并提供一个平台小程序供没有自己小程序的机构使用；机构自有小程序按需逐个发布，数量多了再接入微信第三方平台做批量发布。</div></div><div class="rule"><div class="n">2</div><h4>同一家酒店被两个机构录入</h4><div class="do">酒店由机构各自维护后，系统不会阻止两家机构录入同一家酒店。「一家酒店只对接一家众包商」建议作为业务约定，不由系统强制。</div></div><div class="rule"><div class="n">3</div><h4>工期与投入</h4><div class="do">约 17 周，按 2 名后端 + 1 名前端/小程序开发粗估。</div></div>
+</main>
+<footer><div class="wrap">工期为粗估，需按实际团队校准。</div></footer>
+<script>
+(function () {
+  var root = document.documentElement, main = document.querySelector('main');
+  var KEY = 'anno:' + root.dataset.docId, NAME_KEY = 'anno:author';
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  // 恢复本机上次的标注（仅当比文件内嵌的更新时）
+  try { var s = JSON.parse(ls(KEY) || 'null'); if (s && s.rev > Number(root.dataset.rev || 0)) main.innerHTML = s.html; } catch (e) {}
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function ui(n) { n.setAttribute('data-anno-ui', ''); return n; }
+
+  var panel = ui(el('aside', 'anno-panel')); panel.setAttribute('aria-label', '标注');
+  var head = el('header'); head.appendChild(el('h2', '', '标注'));
+  var lab = el('label', '', '标注人'); lab.setAttribute('for', 'anno-author'); head.appendChild(lab);
+  var author = el('input'); author.id = 'anno-author'; author.placeholder = '填写你的名字'; author.value = ls(NAME_KEY) || ''; head.appendChild(author);
+  author.addEventListener('input', function () { ls(NAME_KEY, author.value); });
+  var actions = el('div', 'anno-actions');
+  var bSave = el('button', 'anno-btn primary', '下载带标注的副本'), bCopy = el('button', 'anno-btn', '复制标注清单'), bClear = el('button', 'anno-btn danger', '清空');
+  [bSave, bCopy, bClear].forEach(function (b) { b.type = 'button'; actions.appendChild(b); });
+  head.appendChild(actions);
+  head.appendChild(el('div', 'anno-hint', '选中正文中的文字，点「添加标注」。标注自动保存在本机浏览器；要发给别人，请下载带标注的副本。'));
+  var list = el('ul', 'anno-list'); panel.appendChild(head); panel.appendChild(list); document.body.appendChild(panel);
+  var addBtn = ui(el('button', 'anno-btn primary anno-add', '添加标注')); addBtn.type = 'button'; document.body.appendChild(addBtn);
+  var pop = ui(el('div', 'anno-pop')); var ta = el('textarea'); ta.id = 'anno-note'; ta.placeholder = '写下意见（可留空，只做高亮）';
+  var popAct = el('div', 'anno-actions'); var pOk = el('button', 'anno-btn primary', '保存'), pDel = el('button', 'anno-btn danger', '删除'), pCancel = el('button', 'anno-btn', '关闭');
+  [pOk, pDel, pCancel].forEach(function (b) { b.type = 'button'; popAct.appendChild(b); });
+  pop.appendChild(ta); pop.appendChild(popAct); document.body.appendChild(pop);
+  var toast = ui(el('div', 'anno-toast')); document.body.appendChild(toast);
+  function say(t) { toast.textContent = t; toast.style.display = 'block'; clearTimeout(say.t); say.t = setTimeout(function () { toast.style.display = 'none'; }, 2200); }
+
+  function marks(id) { return main.querySelectorAll('mark.anno[data-id="' + id + '"]'); }
+  function ids() { var seen = [], all = main.querySelectorAll('mark.anno'); for (var i = 0; i < all.length; i++) { var d = all[i].dataset.id; if (seen.indexOf(d) < 0) seen.push(d); } return seen; }
+  function info(id) { var m = marks(id), q = ''; for (var i = 0; i < m.length; i++) q += m[i].textContent; return { first: m[0], quote: q.replace(/\s+/g, ' ').trim(), note: m[0].dataset.note || '', author: m[0].dataset.author || '', time: m[0].dataset.time || '' }; }
+  function persist() { ls(KEY, JSON.stringify({ rev: Date.now(), html: main.innerHTML })); render(); }
+  function render() {
+    list.textContent = ''; var all = ids();
+    if (!all.length) { list.appendChild(el('li', 'anno-empty', '还没有标注。')); list.firstChild.style.cursor = 'default'; list.firstChild.style.border = '0'; return; }
+    all.forEach(function (id, i) {
+      var a = info(id), li = el('li'); li.tabIndex = 0;
+      li.appendChild(el('div', 'q', (i + 1) + '. ' + (a.quote.length > 70 ? a.quote.slice(0, 70) + '…' : a.quote)));
+      if (a.note) li.appendChild(el('div', 't', a.note));
+      li.appendChild(el('div', 'm', [a.author || '未署名', a.time].filter(Boolean).join(' · ')));
+      function go() { a.first.scrollIntoView({ block: 'center' }); var m = marks(id); for (var k = 0; k < m.length; k++) m[k].classList.add('flash'); setTimeout(function () { for (var k = 0; k < m.length; k++) m[k].classList.remove('flash'); }, 1200); openEditor(id); }
+      li.addEventListener('click', go); li.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+      list.appendChild(li);
+    });
+  }
+  function wrap(range, id) {
+    var nodes = [], w = document.createTreeWalker(main, NodeFilter.SHOW_TEXT), n;
+    while ((n = w.nextNode())) { if (range.intersectsNode(n) && n.nodeValue.trim() && !(n.parentNode.closest && n.parentNode.closest('mark.anno'))) nodes.push(n); }
+    var made = 0;
+    nodes.forEach(function (node) {
+      var s = node === range.startContainer ? range.startOffset : 0, e = node === range.endContainer ? range.endOffset : node.nodeValue.length;
+      if (e <= s) return;
+      var mid = node.splitText(s); mid.splitText(e - s);
+      if (!mid.nodeValue.trim()) return;
+      var m = document.createElement('mark'); m.className = 'anno'; m.dataset.id = id;
+      mid.parentNode.insertBefore(m, mid); m.appendChild(mid); made++;
+    });
+    return made;
+  }
+  function remove(id) { var m = marks(id); for (var i = 0; i < m.length; i++) { var p = m[i].parentNode; while (m[i].firstChild) p.insertBefore(m[i].firstChild, m[i]); p.removeChild(m[i]); p.normalize(); } }
+  var editing = null;
+  function place(box, rect) { box.style.display = 'block'; var w = box.offsetWidth, h = box.offsetHeight; var x = Math.min(Math.max(8, rect.left), innerWidth - w - 8), y = rect.bottom + 8; if (y + h > innerHeight - 8) y = Math.max(8, rect.top - h - 8); box.style.left = x + 'px'; box.style.top = y + 'px'; }
+  function openEditor(id) { editing = id; var a = info(id); ta.value = a.note; place(pop, a.first.getBoundingClientRect()); ta.focus(); }
+  function closeEditor() { pop.style.display = 'none'; editing = null; }
+  pOk.addEventListener('click', function () { if (!editing) return; var a = info(editing); a.first.dataset.note = ta.value.trim(); if (!a.first.dataset.author) a.first.dataset.author = author.value.trim(); closeEditor(); persist(); });
+  pDel.addEventListener('click', function () { if (!editing) return; remove(editing); closeEditor(); persist(); });
+  pCancel.addEventListener('click', closeEditor);
+
+  var pending = null;
+  function checkSelection() {
+    var sel = getSelection(); addBtn.style.display = 'none'; pending = null;
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+    var r = sel.getRangeAt(0); if (!main.contains(r.commonAncestorContainer) && r.commonAncestorContainer !== main) return;
+    if (!sel.toString().trim()) return;
+    pending = r.cloneRange(); var rects = r.getClientRects(); place(addBtn, rects[rects.length - 1] || r.getBoundingClientRect());
+  }
+  document.addEventListener('mouseup', function (e) { if (e.target.closest && e.target.closest('[data-anno-ui]')) return; setTimeout(checkSelection, 0); });
+  document.addEventListener('touchend', function () { setTimeout(checkSelection, 0); });
+  document.addEventListener('keyup', function (e) { if (e.shiftKey || e.key === 'Shift') setTimeout(checkSelection, 0); });
+  addBtn.addEventListener('mousedown', function (e) { e.preventDefault(); });
+  addBtn.addEventListener('click', function () {
+    if (!pending) return; var id = 'a' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+    var made = wrap(pending, id); addBtn.style.display = 'none'; getSelection().removeAllRanges(); pending = null;
+    if (!made) { say('这段文字已经标注过了'); return; }
+    var f = marks(id)[0]; f.dataset.author = author.value.trim(); var d = new Date(); function p(x) { return (x < 10 ? '0' : '') + x; }
+    f.dataset.time = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    persist(); openEditor(id);
+  });
+  main.addEventListener('click', function (e) { var m = e.target.closest && e.target.closest('mark.anno'); if (m && getSelection().isCollapsed) openEditor(m.dataset.id); });
+
+  function listText() { return ids().map(function (id, i) { var a = info(id); return (i + 1) + '. 「' + a.quote + '」\n   ' + (a.note || '（仅高亮）') + '\n   —— ' + [a.author || '未署名', a.time].filter(Boolean).join(' '); }).join('\n\n'); }
+  bCopy.addEventListener('click', function () {
+    var t = listText(); if (!t) { say('还没有标注'); return; }
+    function fallback() { var x = document.createElement('textarea'); x.value = t; document.body.appendChild(x); x.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} document.body.removeChild(x); say(ok ? '已复制标注清单' : '复制失败，请手动选择复制'); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function () { say('已复制标注清单'); }, fallback); else fallback();
+  });
+  var clearArmed = false;
+  bClear.addEventListener('click', function () {
+    if (!ids().length) { say('还没有标注'); return; }
+    if (!clearArmed) { clearArmed = true; bClear.textContent = '再点一次确认清空'; setTimeout(function () { clearArmed = false; bClear.textContent = '清空'; }, 3000); return; }
+    ids().forEach(remove); clearArmed = false; bClear.textContent = '清空'; closeEditor(); persist();
+  });
+  bSave.addEventListener('click', function () {
+    closeEditor(); var c = root.cloneNode(true); c.dataset.rev = String(Date.now());
+    var junk = c.querySelectorAll('[data-anno-ui]'); for (var i = 0; i < junk.length; i++) junk[i].parentNode.removeChild(junk[i]);
+    var fl = c.querySelectorAll('mark.flash'); for (var j = 0; j < fl.length; j++) fl[j].classList.remove('flash');
+    var blob = new Blob(['<!DOCTYPE html>\n' + c.outerHTML], { type: 'text/html;charset=utf-8' });
+    var a = document.createElement('a');
+    var d = new Date(); function p2(x) { return (x < 10 ? '0' : '') + x; }
+    // 文件名只用英文和数字：部分浏览器对中文下载名会退回成无扩展名的默认名
+    a.href = URL.createObjectURL(blob); a.download = root.dataset.docId + '-annotated-' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' + p2(d.getHours()) + p2(d.getMinutes()) + '.html';
+    document.body.appendChild(a);
+    try { a.click(); say('已生成带标注的副本'); } catch (e) { say('当前环境不支持下载，请先把本文件保存到电脑后再打开'); }
+    setTimeout(function () { URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 1000);
+  });
+  render();
+})();
+</script>
+</body>
+</html>
