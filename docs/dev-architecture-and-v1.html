@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>酒店服务平台开发说明</title>
+<style>
+:root{--paper:#f4f6f7;--surface:#fff;--ink:#18252d;--muted:#5b6b75;--line:#d5dde2;--accent:#0b6e69;--accent-soft:#dff0ee;--warn:#a85a00;--warn-soft:#fbeeda;
+--font-body:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;--font-display:"Songti SC","STSong","Noto Serif SC","SimSun",serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--paper:#11181c;--surface:#19232a;--ink:#e6edf0;--muted:#9aa9b2;--line:#2e3c45;--accent:#58c2b9;--accent-soft:#16332f;--warn:#e9a657;--warn-soft:#3a2a12}}
+:root[data-theme="dark"]{color-scheme:dark;--paper:#11181c;--surface:#19232a;--ink:#e6edf0;--muted:#9aa9b2;--line:#2e3c45;--accent:#58c2b9;--accent-soft:#16332f;--warn:#e9a657;--warn-soft:#3a2a12}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.7;font-variant-numeric:tabular-nums}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}header{padding:40px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--accent);font-weight:600}
+h1{font-family:var(--font-display);font-size:32px;line-height:1.25;margin:8px 0 10px;text-wrap:balance}
+h2{font-family:var(--font-display);font-size:23px;margin:38px 0 8px}h3{font-size:16px;margin:26px 0 10px}
+p{margin:8px 0;max-width:46em}.lede{color:var(--muted)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.card h4{margin:0 0 4px;font-size:15px}.card p{margin:0;font-size:13.5px;color:var(--muted)}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:600px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12.5px;background:var(--paper)}tr:last-child td{border-bottom:0}
+ul{padding-left:20px;max-width:46em}li{margin:4px 0}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:44px 1fr;gap:4px 12px;margin:10px 0}
+.rule .n{grid-row:1/4;width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
+.rule h4{margin:4px 0 2px;font-size:15.5px}.rule .do{font-size:14.5px}.rule .why{font-size:13.5px;color:var(--muted)}
+.tag{display:inline-block;font-size:12px;padding:0 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);margin-left:8px;font-weight:400;white-space:nowrap;vertical-align:1px}
+.tag.later{border-color:var(--warn);color:var(--warn);border-style:dashed}
+.closing{border-left:4px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+footer{padding:30px 0 50px;color:var(--muted);font-size:12.5px}
+main h1{display:none}pre{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.55}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}p code,td code,li code{background:var(--accent-soft);padding:0 4px;border-radius:3px}
+blockquote{border-left:4px solid var(--warn);background:var(--warn-soft);margin:14px 0;padding:8px 16px;border-radius:0 8px 8px 0}blockquote p{margin:4px 0}
+h3{margin-top:30px}h2{border-top:1px solid var(--line);padding-top:26px}ol{padding-left:22px;max-width:46em}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="eyebrow">平台重构 · 开发版</div><h1>酒店服务平台开发说明</h1></div></header>
+<main class="wrap">
+<h1>酒店服务平台：现有架构、V1 方案与后续考虑（开发版）</h1>
+<p>平台围绕酒店提供服务。服务机构入驻后各自维护自己的酒店，按开通的应用提供服务。V1 只上线共享保洁，之后陆续接入接送、洗涤、维修、配餐。</p>
+<p>本文分三部分：现有 Node 系统是怎么做的、V1 准备怎么做、后续要提前考虑的事。</p>
+<blockquote>
+<p>现有系统部分来自源码通读和线上后台只读调研。V1 中关于开源框架的判断基于对 ruoyi-vue-pro 的了解，<strong>尚未对照选定版本的源码逐项验证</strong>，开工第一步需要做这件事。</p>
+</blockquote>
+<h2>1. 现有系统</h2>
+<h3>1.1 技术栈与规模</h3>
+<div class="tablebox"><table>
+<thead>
+<tr>
+<th>项</th>
+<th>现状</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>后端</td>
+<td>Node.js + Express，<code>mysql</code> 驱动直连，<code>socket.io</code> 推送，<code>node-schedule</code> 定时任务，单进程</td>
+</tr>
+<tr>
+<td>前端</td>
+<td>Vue 3 + Vuex + Element Plus（后台）；公众号内 H5（<code>/mobile</code>）给酒店、保洁员、司机用</td>
+</tr>
+<tr>
+<td>外部依赖</td>
+<td>七牛云存储、阿里云短信、微信公众号 / 小程序 / 支付、C-Lodop 打印</td>
+</tr>
+<tr>
+<td>规模</td>
+<td>约 1.7 万行，99 张表，约 325 个接口，329 个权限点</td>
+</tr>
+</tbody>
+</table></div>
+<h3>1.2 代码结构</h3>
+<pre><code>router/
+  platform/        登录、机构、应用、菜单、角色、用户、字典、参数、公众号、控制台、通知、定时任务
+  base_data/       酒店、保洁员、司机、车队、车辆、客户、商品、商家 …
+  order_center/    保洁单、接送单、布草单、电商订单、评价 …
+  bill/            账单、绩效
+  work_panel/      控制台各统计组件的数据接口
+  wechat/          微信回调
+common/
+  sql_unit.js      拼 SQL 的工具（insert / update / 搜索条件）
+  common.js        鉴权、权限校验、字典翻译、统一响应
+  data_cache.js    进程内缓存（酒店、机构、公众号配置等）
+  socket_methods.js / timed_task_methods.js
+wechat_tool/       公众号、小程序的 access_token、模板消息、菜单
+token/ pem/ qiniu/ ali_msg/
+</code></pre>
+<h3>1.3 核心机制</h3>
+<p><strong>认证</strong></p>
+<ul>
+<li>前端先取 RSA 公钥，密码加密后登录。</li>
+<li>token 是自制格式：<code>base64(payload).HMAC</code>，payload 里带 <code>id</code>、<code>organ_id</code>、<code>client</code>、<code>appid</code>，有效期 30 天。</li>
+<li>每个客户端类型只保留一个有效 <code>token_id</code>，在别处登录会把之前的挤掉。</li>
+<li>登录方式：账号密码、短信验证码、小程序 <code>code</code>、公众号 openid。微信身份存在 <code>wx_user</code>，与用户的绑定存在 <code>wx_platform(wx_id, user_id, app_id)</code>。</li>
+</ul>
+<p><strong>多机构</strong></p>
+<ul>
+<li>机构 <code>core_organ</code>，用户与机构的关系 <code>core_user_organ</code>。登录时取查到的第一条，实际效果是一个用户只属于一个机构。</li>
+<li>数据隔离靠每条 SQL 手写 <code>organ_id = ?</code>，<code>organ_id</code> 从 token 里取。没有统一拦截。</li>
+<li>机构 id 为 <code>-1</code> 的是平台自身，全局默认配置挂在它名下。</li>
+</ul>
+<p><strong>应用与权限</strong></p>
+<div class="tablebox"><table>
+<thead>
+<tr>
+<th>表</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>core_application</code></td>
+<td>应用</td>
+</tr>
+<tr>
+<td><code>core_app_resource</code></td>
+<td>应用包含哪些菜单和操作</td>
+</tr>
+<tr>
+<td><code>core_organ_app</code></td>
+<td>机构开通了哪些应用</td>
+</tr>
+<tr>
+<td><code>base_menu</code></td>
+<td>两级菜单，带前端路由和组件路径</td>
+</tr>
+<tr>
+<td><code>base_operation</code></td>
+<td>菜单下的操作，带 <code>req_url</code>，权限码为 <code>模块.菜单.操作</code></td>
+</tr>
+<tr>
+<td><code>core_role</code> / <code>core_user_role</code> / <code>core_permission</code></td>
+<td>角色、用户角色、授权记录（可对角色授权，也可直接对用户授权）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>字典与参数</strong></p>
+<ul>
+<li><code>base_dict</code> / <code>base_dict_item</code>：字典项带 <code>organ_id</code>，<code>-1</code> 为全局，机构可覆盖。接口返回里的 <code>xxx_value</code> 是字典翻译结果。</li>
+<li><code>system_config</code> / <code>system_config_value</code>：参数定义与取值分开，取值按机构存，取不到用 <code>-1</code> 的全局值。</li>
+</ul>
+<p><strong>控制台（工作台）</strong></p>
+<ul>
+<li><code>base_template</code>：统计组件，共 23 个，每个对应一个前端组件和一个 <code>work_panel/</code> 下的数据接口。</li>
+<li><code>core_workPanel</code> + <code>core_workPanel_detail(template_id, width, height, sort)</code>：把组件拼成一套控制台。</li>
+<li><code>workPanel_organ</code>：把控制台分配给机构，一个机构只能有一套。</li>
+<li>取「我的控制台」时还会按权限过滤组件。</li>
+<li>只有电脑端，由平台管理员统一拼装，机构自己不能调。</li>
+</ul>
+<p><strong>公众号 / 小程序</strong></p>
+<ul>
+<li><code>wx_config</code>：按机构登记，字段包括类型（公众号 / 小程序）、<code>app_id</code>、<code>app_secret</code>、手机端网址、<code>msg_tem</code>（模板消息 id 的 JSON）、<code>menu_obj</code>（公众号菜单 JSON）、微信支付商户参数。</li>
+<li>公众号菜单在后台编辑后调用微信接口推送。</li>
+<li>酒店入口是一个带 <code>stateJson</code> 的链接或二维码，里面加密了「机构 id, 酒店 id, appId」，用来识别来源。</li>
+<li>新单、完工等通过公众号模板消息通知。</li>
+</ul>
+<h3>1.4 保洁业务</h3>
+<div class="tablebox"><table>
+<thead>
+<tr>
+<th>表</th>
+<th>主要字段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>base_hotel</code></td>
+<td><code>organ_id</code>, <code>name</code>, <code>tel</code>, <code>status</code>, <code>public</code>, <code>half_able</code>, <code>limit_able</code>, <code>state_json</code></td>
+</tr>
+<tr>
+<td><code>hotel_room</code></td>
+<td><code>hotel_id</code>, <code>name</code>, <code>floor</code>, <code>price</code>, <code>rate</code>, <code>default_data</code></td>
+</tr>
+<tr>
+<td><code>hotel_user</code></td>
+<td><code>hotel_id</code>, <code>user_id</code>, <code>type</code>（负责人 / 普通）</td>
+</tr>
+<tr>
+<td><code>base_cleaner</code></td>
+<td><code>organ_id</code>, <code>cleaner_id</code>（→ <code>core_user.id</code>）, <code>status</code></td>
+</tr>
+<tr>
+<td><code>room_order</code></td>
+<td><code>organ_id</code>, <code>hotel_id</code>, <code>date</code>, <code>num</code>, <code>amount</code>, <code>status</code>, <code>payment_status</code>, <code>annex</code>, <code>remark</code></td>
+</tr>
+<tr>
+<td><code>room_order_detail</code></td>
+<td><code>room_order_id</code>, <code>name</code>（房间）, <code>tag</code>（JSON，含下单时的价格）, <code>status</code>, <code>user_id</code>（JSON 数组，可多人）, <code>room_round</code>, <code>warning</code>, <code>annex</code>, <code>remark</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>流程：</p>
+<ol>
+<li>酒店人员从公众号进入，每天建一张 <code>room_order</code>，往里加房间明细。机构负责人也可代录。</li>
+<li>机构负责人收到模板消息，单间或整单派给保洁员，可撤回。保洁员也可以自己接待接单的房间。</li>
+<li>保洁员或负责人标记完成，酒店收到通知。明细全部完成或取消后，主单自动变为已完成。</li>
+<li>可标记查房结果、异常、取消。</li>
+<li>机构在后台标记收款，不走线上支付。</li>
+</ol>
+<p>明细状态：<code>pendAccept → accepted → completed</code>，另有 <code>giveup</code>、<code>unusual</code>。主单状态：<code>in_progress → completed</code>。</p>
+<h3>1.5 已知问题</h3>
+<div class="tablebox"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SQL 由字符串拼接，查询参数名和值、更新字段都直接进 SQL</td>
+<td><code>sql_unit.js</code> 的 <code>searchSql</code>、<code>updateParam</code>，全系统通用</td>
+</tr>
+<tr>
+<td>数据库口令、微信支付证书、登录私钥、token 密钥都在仓库里</td>
+<td><code>db/</code>、<code>wechat/</code>、<code>pem/</code>、<code>token/</code></td>
+</tr>
+<tr>
+<td>密码是无盐 SHA1，默认密码为手机号后六位</td>
+<td><code>sql_unit.js</code> 的 <code>addUserFilter</code></td>
+</tr>
+<tr>
+<td>接口把 <code>app_secret</code>、商户密钥原文返回给前端</td>
+<td><code>platform/wx_app</code></td>
+</tr>
+<tr>
+<td>部分接口没有鉴权；洗涤等多处把机构 id 写死为 <code>-1</code></td>
+<td><code>base_data/customer_manage</code>、<code>order_center/linen_*</code></td>
+</tr>
+<tr>
+<td>异常时把数据库报错原文返回</td>
+<td>各路由的 <code>catch</code></td>
+</tr>
+<tr>
+<td>缓存在进程内存里，无法多实例部署</td>
+<td><code>data_cache.js</code></td>
+</tr>
+<tr>
+<td>开启了多语句执行；无自动化测试；无数据库变更脚本</td>
+<td><code>db/mysql.js</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2>2. V1 方案</h2>
+<h3>2.1 目标架构</h3>
+<pre><code>平台（我们管理）
+    机构管理 │ 应用管理 │ 区域（景区） │ 字典与参数 │ 公众号/小程序/控制台模板 │ 全平台统计
+
+机构（= 租户，数据互相隔离）
+    开通的应用 │ 酒店、房间、酒店人员 │ 人员与角色 │ 公众号/小程序 │ 控制台 │ 价格、订单、账目
+
+应用（机构按需开通）
+    共享保洁【V1】 │ 酒店接送 │ 洗涤 │ 维修 │ 配餐
+
+入口
+    机构的公众号 / 小程序（手机为主） │ 电脑管理后台
+</code></pre>
+<h3>2.2 技术选型</h3>
+<div class="tablebox"><table>
+<thead>
+<tr>
+<th>项</th>
+<th>选择</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>后端底座</td>
+<td>ruoyi-vue-pro 单体版（Spring Boot 3，JDK 17 或 21，MyBatis-Plus）</td>
+</tr>
+<tr>
+<td>数据</td>
+<td>MySQL + Redis；文件继续用七牛（走框架的 S3 兼容存储）</td>
+</tr>
+<tr>
+<td>管理后台</td>
+<td>框架自带的 Vue 3 + Element Plus 版本</td>
+</tr>
+<tr>
+<td>手机端</td>
+<td>uni-app（Vue 3），一套代码发小程序和公众号 H5</td>
+</tr>
+<tr>
+<td>模块划分</td>
+<td>框架的 system / infra / mp 保留；商城、CRM、ERP、工作流等先不引入；业务按应用分 Maven 模块</td>
+</tr>
+</tbody>
+</table></div>
+<h3>2.3 概念映射</h3>
+<div class="tablebox"><table>
+<thead>
+<tr>
+<th>现有</th>
+<th>V1</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>机构 <code>core_organ</code></td>
+<td>租户</td>
+<td>行级隔离，框架自动加 <code>tenant_id</code> 条件</td>
+</tr>
+<tr>
+<td>应用、应用-菜单</td>
+<td>自建「应用」表</td>
+<td>框架的租户套餐是一租户一套餐，不满足多应用，见 2.4</td>
+</tr>
+<tr>
+<td>机构-应用</td>
+<td>自建「租户-应用」表</td>
+<td>租户可用菜单 = 所开通应用的菜单并集</td>
+</tr>
+<tr>
+<td>菜单 + 操作</td>
+<td>框架菜单表（目录 / 菜单 / 按钮）</td>
+<td>旧菜单对应旧页面，不迁移，随新页面新建</td>
+</tr>
+<tr>
+<td>角色、用户角色</td>
+<td>框架自带</td>
+<td>「直接对用户授权」不保留，统一走角色</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>框架后台用户表</td>
+<td>保洁员、酒店人员都用它，需要角色和租户归属</td>
+</tr>
+<tr>
+<td>字典、参数</td>
+<td>框架自带</td>
+<td>按机构覆盖字典项的能力需自己加，V1 先不做</td>
+</tr>
+<tr>
+<td>定时任务、文件、短信、日志</td>
+<td>框架自带</td>
+<td></td>
+</tr>
+<tr>
+<td>公众号配置 <code>wx_config</code></td>
+<td>框架 mp 模块的公众号账号 + 自建小程序账号配置</td>
+<td>按租户存，密钥加密、不回显</td>
+</tr>
+<tr>
+<td>控制台</td>
+<td>自建</td>
+<td>框架没有对应功能</td>
+</tr>
+<tr>
+<td>通知任务 + socket.io</td>
+<td>框架站内信 + WebSocket + 微信消息</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3>2.4 需要改动或补充框架的地方</h3>
+<ol>
+<li><strong>一个机构开通多个应用。</strong> 新增应用表和租户-应用表，改掉租户服务里「按套餐取菜单」和「套餐变更后同步租户角色菜单」两处逻辑。</li>
+<li><strong>机构自助注册与审核。</strong> 新增申请表和审核流程，审核通过后调用框架已有的创建租户逻辑，并开通默认应用、建默认角色。</li>
+<li><strong>后台用户的微信登录。</strong> 框架的小程序 / 公众号登录主要在会员端，后台用户端需要补：小程序手机号登录、公众号 openid 绑定登录。</li>
+<li><strong>一个手机号属于多个机构。</strong> 确认框架里用户名、手机号的唯一性范围；登录后按手机号列出可进入的机构供选择。</li>
+<li><strong>平台管理员跨租户。</strong> 平台统计类查询要显式忽略租户条件，并限定只有平台管理员可调用。</li>
+</ol>
+<h3>2.5 V1 数据模型草案</h3>
+<p>平台级表不带租户；其余都带 <code>tenant_id</code>，走框架自动隔离。表名为示意。</p>
+<div class="tablebox"><table>
+<thead>
+<tr>
+<th>表</th>
+<th>级别</th>
+<th>主要字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app</code></td>
+<td>平台</td>
+<td>code, name, status, 是否要求区域</td>
+<td>应用</td>
+</tr>
+<tr>
+<td><code>app_menu</code></td>
+<td>平台</td>
+<td>app_id, menu_id</td>
+<td>应用包含的后台菜单</td>
+</tr>
+<tr>
+<td><code>app_mobile_entry</code></td>
+<td>平台</td>
+<td>app_id, 名称, 图标, 页面路径, 权限标识, 排序</td>
+<td>应用的手机端入口</td>
+</tr>
+<tr>
+<td><code>app_wx_template</code></td>
+<td>平台</td>
+<td>app_id, 公众号菜单片段, 需要的消息模板清单</td>
+<td>用于自动生成机构的公众号菜单</td>
+</tr>
+<tr>
+<td><code>tenant_app</code></td>
+<td>平台</td>
+<td>tenant_id, app_id, 开通时间, 状态</td>
+<td>机构开通的应用</td>
+</tr>
+<tr>
+<td><code>tenant_apply</code></td>
+<td>平台</td>
+<td>机构名称, 联系人, 手机号, 资料, 申请区域, 状态</td>
+<td>入驻申请</td>
+</tr>
+<tr>
+<td><code>area</code></td>
+<td>平台</td>
+<td>name, type（景区 / 其他）, 所在地, status</td>
+<td>区域（景区）</td>
+</tr>
+<tr>
+<td><code>tenant_area</code></td>
+<td>平台</td>
+<td>tenant_id, area_id, 状态</td>
+<td>机构服务的区域，需审核</td>
+</tr>
+<tr>
+<td><code>wx_account</code></td>
+<td>租户</td>
+<td>类型, app_id, 密钥（加密）, 菜单 JSON, 消息模板 id</td>
+<td>机构自己的公众号 / 小程序</td>
+</tr>
+<tr>
+<td><code>console_widget</code></td>
+<td>平台</td>
+<td>code, name, app_id, 端（pc / mobile）</td>
+<td>控制台组件</td>
+</tr>
+<tr>
+<td><code>console_layout</code></td>
+<td>租户</td>
+<td>端, 组件布局 JSON</td>
+<td>机构的控制台；没有则用应用默认</td>
+</tr>
+<tr>
+<td><code>hotel</code></td>
+<td>租户</td>
+<td>name, tel, 地址, area_id, status</td>
+<td>酒店，机构私有</td>
+</tr>
+<tr>
+<td><code>hotel_room</code></td>
+<td>租户</td>
+<td>hotel_id, 房号, 楼层, 房型</td>
+<td></td>
+</tr>
+<tr>
+<td><code>hotel_user</code></td>
+<td>租户</td>
+<td>hotel_id, user_id, type</td>
+<td>酒店人员</td>
+</tr>
+<tr>
+<td><code>cleaner</code></td>
+<td>租户</td>
+<td>user_id, status, score, 评价数</td>
+<td>保洁员</td>
+</tr>
+<tr>
+<td><code>cleaner_area</code></td>
+<td>租户</td>
+<td>cleaner_id, area_id</td>
+<td>保洁员服务的区域</td>
+</tr>
+<tr>
+<td><code>clean_price</code></td>
+<td>租户</td>
+<td>hotel_id, 房型, 保洁类型, price</td>
+<td>机构定价</td>
+</tr>
+<tr>
+<td><code>clean_order</code></td>
+<td>租户</td>
+<td>hotel_id, date, status, 金额, 收款状态</td>
+<td>保洁主单</td>
+</tr>
+<tr>
+<td><code>clean_order_item</code></td>
+<td>租户</td>
+<td>order_id, room_id, 保洁类型, 单价快照, status, 打卡时间, 完工照片, 备注</td>
+<td>每间房一条</td>
+</tr>
+<tr>
+<td><code>clean_order_item_cleaner</code></td>
+<td>租户</td>
+<td>item_id, cleaner_id</td>
+<td>一间房可派多人；旧系统是 JSON 数组，这里拆成关联表</td>
+</tr>
+<tr>
+<td><code>clean_review</code></td>
+<td>租户</td>
+<td>item_id, cleaner_id, 星级, 标签, 内容</td>
+<td>酒店评价</td>
+</tr>
+</tbody>
+</table></div>
+<h3>2.6 V1 关键设计</h3>
+<p><strong>区域（景区）</strong></p>
+<ul>
+<li><code>area</code> 带类型，景区是其中一种。目前只有四姑娘山一条。</li>
+<li>区域是酒店上的属性。应用上有「是否要求区域」的配置：共享保洁为是，新建或编辑酒店时必填；其他应用可空。</li>
+<li>机构服务哪些区域需平台审核。保洁员可设置服务区域，派单候选只列出服务该酒店所在区域的保洁员。</li>
+</ul>
+<p><strong>公众号 / 小程序</strong></p>
+<ul>
+<li>每个机构可对接自己的公众号或小程序，配置存 <code>wx_account</code>。</li>
+<li>进入时如何识别机构：公众号 H5 的地址里带机构标识；小程序按 <code>appid</code> 反查机构。酒店二维码沿用「机构 + 酒店」的做法，但改成服务端生成的短码，不把参数加密后放在链接里。</li>
+<li>公众号菜单：按机构开通的应用，把各应用的菜单片段合并成默认菜单，机构可调整后推送。</li>
+<li>消息模板 id 每个公众号 / 小程序都不同，按账号保存；发送时按机构取对应账号。</li>
+<li>小程序订阅消息是一次授权发一条，和公众号模板消息的规则不同，通知逻辑要分开处理。</li>
+<li>机构自有小程序需要为每个 <code>appid</code> 单独发布同一套代码。V1 先支持机构自有公众号 + 一个平台小程序；机构自有小程序的发布方式待定，见 3.3。</li>
+</ul>
+<p><strong>控制台</strong></p>
+<ul>
+<li>组件登记在 <code>console_widget</code>，归属到应用，区分电脑端和手机端。</li>
+<li>每个应用带一份默认布局。机构没有自定义时，控制台 = 所开通应用默认布局的合并。</li>
+<li>机构可自行增减、排序，存到 <code>console_layout</code>。</li>
+<li>接口返回前按「机构开通的应用 ∩ 当前用户权限」过滤。</li>
+<li>手机端首页的功能入口来自 <code>app_mobile_entry</code>，同样按上述规则过滤，所以开通新应用后入口自动出现。</li>
+</ul>
+<p><strong>保洁流程与状态</strong></p>
+<pre><code>酒店录单（机构可代录）
+  → 待派单 → 已派单 → 已到场 → 待验收 → 已完成
+                 ↑        │           │
+                 └─ 撤回 ─┘           └─ 退回重做 → 已派单
+  任意未完成状态可：取消、报异常
+</code></pre>
+<ul>
+<li>明细全部完成或取消后，主单自动完成。</li>
+<li>下单时把 <code>clean_price</code> 的单价写入明细，之后调价不影响已有订单。</li>
+<li>派单候选按保洁员评分降序，同时返回在手单量。评分取最近 N 条评价的平均值，没有评价时用默认分；N 和默认分做成参数。</li>
+<li>派单、完工、验收这类操作要防重复提交，状态变更用带原状态条件的更新。</li>
+<li>不做保洁员抢单，不做线上支付。金额只做记录，机构手动标记已收。</li>
+</ul>
+<p><strong>平台统计</strong></p>
+<p>按区域、机构、月份汇总单量和金额，可导出。数据量上来后改成定时汇总到统计表，不直接扫订单表。</p>
+<h3>2.7 数据迁移</h3>
+<div class="tablebox"><table>
+<thead>
+<tr>
+<th>数据</th>
+<th>做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>字典、参数</td>
+<td>只导入通用项和保洁相关项</td>
+</tr>
+<tr>
+<td>机构</td>
+<td>先迁使用保洁的机构；其他机构随各自业务线迁移</td>
+</tr>
+<tr>
+<td>用户、角色</td>
+<td>随机构迁移；旧密码哈希不沿用，首次登录用验证码</td>
+</tr>
+<tr>
+<td>酒店、房间、酒店人员、保洁员</td>
+<td>随机构迁移；酒店的区域需补填</td>
+</tr>
+<tr>
+<td>历史保洁单</td>
+<td>是否迁移、迁多久的范围待定；建议至少迁未结清的</td>
+</tr>
+<tr>
+<td>公众号配置</td>
+<td>随机构迁移，密钥重新录入并顺便更换</td>
+</tr>
+</tbody>
+</table></div>
+<p>旧系统在迁移期间继续运行，一条业务线在新平台验收后再切换。</p>
+<h2>3. 后续需要考虑的事</h2>
+<h3>3.1 新应用接入</h3>
+<ul>
+<li>每个应用是一个独立的 Maven 模块和一个小程序分包，自带菜单、手机端入口、公众号菜单片段、控制台组件、默认角色。</li>
+<li>各项服务的骨架相同：酒店下单 → 机构派给人 → 执行 → 验收评价 → 对账。V1 在保洁模块里实现时，派单、评价、对账、消息的代码边界要划清楚，但不必现在就抽成通用模块；等第二个应用接入时再抽，避免凭一个样本过早抽象。</li>
+<li>同一机构开通多个应用时共用同一批酒店。旧系统里洗涤用的是单独的客户表，迁移洗涤时要并入酒店表。</li>
+<li>服务人员会有多种身份（保洁员、司机、维修工），同一个人可能兼任。V1 的 <code>cleaner</code> 是「用户 + 身份」的结构，后面的身份照此扩展；评分、在手单量按身份分别统计。</li>
+</ul>
+<h3>3.2 各应用的特殊点</h3>
+<div class="tablebox"><table>
+<thead>
+<tr>
+<th>应用</th>
+<th>需要提前留意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>酒店接送</td>
+<td>司机实时定位、车辆证照到期提醒、预约时间限制；旧系统已有完整实现可参照</td>
+</tr>
+<tr>
+<td>洗涤</td>
+<td>RFID 布草出入库、一客一价、Lodop 打印、欠款</td>
+</tr>
+<tr>
+<td>维修</td>
+<td>工单带故障描述和照片、上门时间预约、配件和费用明细，金额在完工后才确定，与保洁的「下单即定价」不同</td>
+</tr>
+<tr>
+<td>配餐</td>
+<td>商品 / 菜单、起送和配送、可能需要线上支付；旧系统的电商模块可参照</td>
+</tr>
+</tbody>
+</table></div>
+<h3>3.3 微信</h3>
+<ul>
+<li>机构自有小程序数量多了以后，需要接入微信开放平台的第三方平台，做授权和批量代发布。V1 只要保证「按 appid 识别机构」这一点，后面就能平滑接入。</li>
+<li>配餐如果要线上支付，需要引入框架的支付模块，并考虑平台、机构之间的分账。V1 不要把「金额只是记录」写死在订单模型里。</li>
+</ul>
+<h3>3.4 数据与权限</h3>
+<ul>
+<li>同一家酒店可能被两个机构各自录入，系统不强制去重。可以在酒店上留一个可选的统一标识字段（如营业执照号），以后平台想做去重统计时有依据。</li>
+<li>机构做大后可能需要「派单员只管某几个区域」，即按区域的数据权限。V1 不做，但区域字段要落在酒店和订单上，方便以后加条件。</li>
+<li>字典按机构覆盖、参数按机构取值，旧系统有这个能力，V1 先不做，看是否有机构提出需求。</li>
+</ul>
+<h3>3.5 工程</h3>
+<ul>
+<li>订单表按 <code>tenant_id + hotel_id + date</code> 建索引；状态查询另建索引。</li>
+<li>缓存放 Redis，保证可以多实例部署。</li>
+<li>引入数据库变更脚本管理和核心流程的自动化测试。</li>
+<li>密钥统一放配置中心或环境变量，不进仓库；微信密钥加密存储，接口不回显。</li>
+<li>关键操作留审计日志：派单、改派、验收、收款标记、机构审核、应用开通。</li>
+<li>单体先行。某个应用负载明显偏高时再单独拆出部署，框架有对应的微服务版本。</li>
+</ul>
+<h3>3.6 待定事项</h3>
+<ol>
+<li>机构自有小程序的发布方式：逐个手动发布，还是直接接第三方平台。</li>
+<li>历史保洁单迁移的范围。</li>
+<li>评分的计算窗口和默认分。</li>
+<li>框架版本的最终选定，以及 2.4 中五处改动对照源码的验证结果。</li>
+</ol>
+</main>
+<footer><div class="wrap">现有系统部分来自源码通读；框架相关判断待对照源码验证。</div></footer>
+</body>
+</html>
