@@ -17,6 +17,7 @@
 
   var reduce = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var played = {};
+  var shape = 'dot'; // 'square' 用于像素风格
   var DEFAULT_COLORS = ['#141414', '#141414', '#141414', '#ea5520', '#8fc31f'];
 
   function done(el) { el.classList.add('fx-done'); }
@@ -114,9 +115,8 @@
         var py = q.sy + (q.ty - q.sy) * e + Math.cos(ts / 380 + q.wob) * drift;
         ctx.globalAlpha = 0.25 + 0.75 * e;
         ctx.fillStyle = q.c;
-        ctx.beginPath();
-        ctx.arc(px, py, q.r, 0, Math.PI * 2);
-        ctx.fill();
+        if (shape === 'square') { var sz = q.r * 2.2; ctx.fillRect(Math.round(px - sz / 2), Math.round(py - sz / 2), sz, sz); }
+        else { ctx.beginPath(); ctx.arc(px, py, q.r, 0, Math.PI * 2); ctx.fill(); }
       }
       if (p < 1.05) {
         global.requestAnimationFrame(frame);
@@ -174,7 +174,7 @@
   }
 
   /* ---------- 彩纸礼花：兑换 / 申报成功时在容器中迸发 ---------- */
-  function burst(container) {
+  function burst(container, palette) {
     if (reduce || !container) return;
     var dpr = Math.min(global.devicePixelRatio || 1, 2);
     var W = container.clientWidth, H = container.clientHeight;
@@ -184,7 +184,7 @@
     c.style.width = W + 'px'; c.style.height = H + 'px';
     container.appendChild(c);
     var ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
-    var colors = ['#c8f04a', '#ea5520', '#141414', '#1597a6', '#f2ede1'];
+    var colors = palette || ['#c8f04a', '#ea5520', '#141414', '#1597a6', '#f2ede1'];
     var ps = [];
     for (var i = 0; i < 140; i++) {
       var a = -Math.PI / 2 + (Math.random() - 0.5) * 1.6, v = 6 + Math.random() * 9;
@@ -206,5 +206,7 @@
     })(performance.now());
   }
 
-  global.LSLFX = { particleTitle: particleTitle, run: run, reveal: reveal, burst: burst };
+  global.LSLFX = { particleTitle: particleTitle, run: run, reveal: reveal, burst: burst,
+    setShape: function (s) { shape = s || 'dot'; },
+    reset: function () { played = {}; } };
 })(window);
