@@ -24,7 +24,10 @@
       fxSec: { donation: '#c4a074,#e8b95c,#1d3d5c', synergy: '#7f9160,#1d3d5c', community: '#1d3d5c,#6b8fb3' }, burst: ['#7f9160', '#e8b95c', '#c4a074', '#1d3d5c', '#e8a7a0'] },
     pixel: { name: '像素', desc: '8-bit 游戏风', sw: ['#1a1c2c', '#ffcd75', '#a7f070', '#ef7d57'], meta: '#1a1c2c', shape: 'square',
       fx: '#f4f4f4,#ffcd75,#a7f070,#41a6f6', fxCard: '#ffcd75,#ffcd75,#a7f070,#f4f4f4',
-      fxSec: { donation: '#ef7d57,#ffcd75', synergy: '#ffcd75,#a7f070', community: '#41a6f6,#73eff7' }, burst: ['#ffcd75', '#a7f070', '#ef7d57', '#41a6f6', '#f4f4f4'] }
+      fxSec: { donation: '#ef7d57,#ffcd75', synergy: '#ffcd75,#a7f070', community: '#41a6f6,#73eff7' }, burst: ['#ffcd75', '#a7f070', '#ef7d57', '#41a6f6', '#f4f4f4'] },
+    delaunay: { name: '晶格', desc: 'Delaunay 几何渐变', sw: ['#f0f1ee', '#33352f', '#9b5de5', '#3fb39a'], meta: '#f0f1ee', shape: 'dot',
+      fx: '#7b4bc4,#d1499b,#3fb39a,#c7b23a,#111111', fxCard: '#7b4bc4,#d1499b,#3fb39a,#c7b23a',
+      fxSec: { donation: '#d1499b,#c2417f,#111111', synergy: '#7b4bc4,#9b5de5,#111111', community: '#3fb39a,#2f9e8a,#111111' }, burst: ['#7b4bc4', '#d1499b', '#3fb39a', '#c7b23a', '#33352f'] }
   };
   var theme = 'sweat';
 
@@ -43,7 +46,7 @@
   function toast(msg) { var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; $screen.appendChild(t); setTimeout(function () { t.remove(); }, 1900); }
   function chip(sec) { var s = LSL.section(sec); return s ? '<span class="chip ' + s.key + '">' + esc(s.name) + '</span>' : ''; }
   function secHead(n, total, label, right) {
-    return '<div class="sec-head rv"><span class="mono"><b>' + pad(n) + ' / ' + pad(total) + '</b> · ' + esc(label) + '</span>' + (right ? '<span class="mono more">' + right + '</span>' : '') + '</div>';
+    return '<div class="sec-head rv"><span class="mono"><b><i class="sn">' + pad(n) + '</i><i class="st"> / ' + pad(total) + '</i></b> · ' + esc(label) + '</span>' + (right ? '<span class="mono more">' + right + '</span>' : '') + '</div>';
   }
   function T() { return THEMES[theme]; }
   function fxa(key, kind) {
@@ -85,6 +88,7 @@
     $page.innerHTML = VIEWS[v](c);
     LSLFX.run($page, { instant: !!opts.quiet });
     setupCarousel();
+    setupMesh();
     if (c && c.merchant && v === 'home') lastSeen = { id: c.merchant.id, points: c.merchant.points };
   }
 
@@ -100,11 +104,21 @@
   function titleFx(l1, l2, extra) {
     return '<h1 class="hero-title"' + fxa('hero-title') + '><span class="fx-line">' + esc(l1) + '</span><span class="fx-line">' + esc(l2) + (extra || '') + '</span></h1>';
   }
-  var MASCOT = '<svg class="mascot" viewBox="0 0 120 172" aria-hidden="true"><defs><linearGradient id="mg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#31477a"/><stop offset=".5" stop-color="#14254a"/><stop offset=".5" stop-color="#f6b13a"/><stop offset="1" stop-color="#e08a12"/></linearGradient></defs>' +
-    '<ellipse cx="60" cy="164" rx="34" ry="5" fill="rgba(0,0,0,.28)"/><path d="M42 140v16M78 140v16" stroke="#0e1a33" stroke-width="8" stroke-linecap="round"/>' +
-    '<path d="M26 84C10 86 6 98 12 106M94 82C110 76 114 62 106 54" stroke="#0e1a33" stroke-width="7" fill="none" stroke-linecap="round"/>' +
-    '<rect x="26" y="12" width="68" height="134" rx="34" fill="url(#mg)"/><ellipse cx="44" cy="42" rx="7" ry="16" fill="rgba(255,255,255,.2)"/>' +
-    '<circle cx="49" cy="62" r="5" fill="#fff"/><circle cx="71" cy="62" r="5" fill="#fff"/><path d="M50 74q10 10 20 0" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>';
+  // Ally 吉祥物「小麓」：白色小鹿 + 琥珀色卷曲鹿角（参照麓湖+ 标志）
+  var MASCOT = '<svg class="mascot" viewBox="0 0 130 180" aria-hidden="true"><defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9e2f1"/></linearGradient></defs>' +
+    '<ellipse cx="65" cy="173" rx="34" ry="5" fill="rgba(0,0,0,.3)"/>' +
+    '<g stroke="#f0a623" stroke-width="6" fill="none" stroke-linecap="round"><path d="M52 46C48 30 40 19 29 17C18 15 11 25 17 32C21 37 28 33 26 28"/><path d="M78 46C82 30 90 19 101 17C112 15 119 25 113 32C109 37 102 33 104 28"/></g>' +
+    '<g stroke="#f0a623" stroke-width="4.5" fill="none" stroke-linecap="round"><path d="M41 25C37 17 39 9 45 7"/><path d="M89 25C93 17 91 9 85 7"/></g>' +
+    '<path d="M51 150v16M79 150v16" stroke="#0e1a33" stroke-width="8" stroke-linecap="round"/>' +
+    '<path d="M39 112C25 112 18 102 21 93M91 112C104 116 110 124 108 133" stroke="#eef2f8" stroke-width="8" fill="none" stroke-linecap="round"/>' +
+    '<rect x="36" y="96" width="58" height="62" rx="26" fill="url(#dg)"/><ellipse cx="65" cy="133" rx="15" ry="17" fill="#ffe7bf"/>' +
+    '<circle cx="49" cy="110" r="3" fill="#f6c27a"/><circle cx="81" cy="106" r="2.5" fill="#f6c27a"/><circle cx="85" cy="119" r="2" fill="#f6c27a"/>' +
+    '<g transform="rotate(-25 34 58)"><ellipse cx="34" cy="58" rx="14" ry="7" fill="#eef2f8"/><ellipse cx="34" cy="58" rx="8" ry="3.5" fill="#f6c27a"/></g>' +
+    '<g transform="rotate(25 96 58)"><ellipse cx="96" cy="58" rx="14" ry="7" fill="#eef2f8"/><ellipse cx="96" cy="58" rx="8" ry="3.5" fill="#f6c27a"/></g>' +
+    '<ellipse cx="65" cy="70" rx="30" ry="28" fill="url(#dg)"/><ellipse cx="65" cy="85" rx="15" ry="11" fill="#ffe7bf"/>' +
+    '<ellipse cx="65" cy="79.5" rx="5" ry="3.5" fill="#0e1a33"/><path d="M59 88q6 6 12 0" stroke="#0e1a33" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+    '<ellipse cx="53" cy="66" rx="4" ry="5" fill="#0e1a33"/><circle cx="54.6" cy="64" r="1.4" fill="#fff"/><ellipse cx="77" cy="66" rx="4" ry="5" fill="#0e1a33"/><circle cx="78.6" cy="64" r="1.4" fill="#fff"/>' +
+    '<ellipse cx="44" cy="78" rx="5" ry="3" fill="#f7a9a0" opacity=".75"/><ellipse cx="86" cy="78" rx="5" ry="3" fill="#f7a9a0" opacity=".75"/></svg>';
   var COIN = '<svg class="coin" viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true"><path fill="#b86f50" d="M4 0h4v1h2v1h1v2h1v4h-1v2h-1v1h-2v1h-4v-1h-2v-1h-1v-2h-1v-4h1v-2h1v-1h2z"/><path fill="#ffcd75" d="M4 1h4v1h2v2h1v4h-1v2h-2v1h-4v-1h-2v-2h-1v-4h1v-2h2z"/><path fill="#fff4c2" d="M4 2h2v1h-2v1h-1v2h-1v-2h1v-1h1z"/><path fill="#b86f50" d="M5 3h2v6h-2z"/></svg>';
   var COURT_ART = '<svg class="hero-art" viewBox="0 0 340 170" fill="none" stroke="#2f2f2f" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<circle cx="300" cy="40" r="16" fill="#e8b95c" stroke="none" class="fill"/>' +
@@ -137,6 +151,13 @@
     } else if (theme === 'court') {
       h += '<svg class="arch-title" viewBox="0 0 300 150" aria-label="麓商联积分圈"><path id="archPath" d="M28 148A122 122 0 0 1 272 148" fill="none"/><text><textPath href="#archPath" startOffset="50%" text-anchor="middle">麓 商 联 · 积 分 圈</textPath></text></svg>';
       h += '<div class="court-sub">LUSHANG POINTS CLUB · ' + esc(p.month) + '</div>' + COURT_ART;
+    } else if (theme === 'delaunay') {
+      h += '<div class="dl-head"><span>LUSHANG</span><span>(00) POINTS CLUB · ' + esc(p.month) + '</span></div>';
+      h += '<div class="dl-art"><canvas class="mesh"></canvas><i class="halftone"></i></div>';
+      h += titleFx('麓商联', '积分圈');
+      h += '<p class="dl-en">GROW WITH CONNECT</p>';
+      h += '<p class="dl-copy">像德劳内三角网一样，每多一个点的连接，就多生出一个新的面。商户、社区与公益，在这里彼此连接。</p>';
+      h += '<button class="dl-ring" data-go="tasks" aria-label="去参与"><svg viewBox="0 0 100 100"><defs><path id="ringPath" d="M50 50m-41 0a41 41 0 1 1 82 0a41 41 0 1 1-82 0"/></defs><text><textPath href="#ringPath">Let\'s connect and grow together · 一起连接 · 一起生长 · </textPath></text></svg><span>去参与 ↗</span></button>';
     } else if (theme === 'pixel') {
       h += '<div class="px-top"><span>1UP · 麓商联</span><span>' + esc(p.month) + '</span></div>';
       h += '<div class="px-row">' + titleFx('麓商联', '积分大冒险') + COIN + '</div>';
@@ -532,6 +553,44 @@
     if (n > 1) carouselTimer = setInterval(function () { show(i + 1); }, 4000);
     el.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
     el.addEventListener('touchend', function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 40) show(i + (dx < 0 ? 1 : -1)); x0 = null; });
+  }
+
+  /* ---------- 晶格风格：缓慢流动的德劳内三角网 ---------- */
+  function setupMesh() { document.querySelectorAll('canvas.mesh').forEach(function (cv) { if (!cv.__run) { cv.__run = true; startMesh(cv); } }); }
+  function startMesh(cv) {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return;
+    cv.width = w * dpr; cv.height = h * dpr;
+    var ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+    var C = 5, R = 4, pts = [], still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    for (var r = 0; r <= R; r++) for (var c = 0; c <= C; c++) {
+      var inner = c > 0 && c < C && r > 0 && r < R;
+      pts.push({ bx: c / C * w + (inner ? (Math.random() - .5) * w / C * .8 : 0), by: r / R * h + (inner ? (Math.random() - .5) * h / R * .8 : 0), amp: inner ? 10 + Math.random() * 10 : 0, ph: Math.random() * 6.28 });
+    }
+    // 配色取自参考站：紫 → 品红 → 青绿 → 蓝 → 橄榄黄，按位置与时间在色带上平滑过渡
+    var PAL = [[106, 75, 196], [194, 68, 154], [63, 179, 154], [74, 127, 209], [185, 178, 60], [106, 75, 196]];
+    function col(x, y, t, shift) {
+      var k = ((x / w * .55 + y / h * .35 + Math.sin(t / 3200 + x / w * 2.6) * .12 + shift) % 1 + 1) % 1 * (PAL.length - 1);
+      var i = Math.floor(k), f = k - i, A = PAL[i], B = PAL[i + 1];
+      return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * f) + ',' + Math.round(A[1] + (B[1] - A[1]) * f) + ',' + Math.round(A[2] + (B[2] - A[2]) * f) + ')';
+    }
+    function draw(t) {
+      if (!cv.isConnected) return;
+      var P = pts.map(function (q) { return { x: q.bx + Math.sin(t / 1900 + q.ph) * q.amp, y: q.by + Math.cos(t / 2300 + q.ph) * q.amp }; });
+      ctx.clearRect(0, 0, w, h);
+      for (var r = 0; r < R; r++) for (var c = 0; c < C; c++) {
+        var a = P[r * (C + 1) + c], b = P[r * (C + 1) + c + 1], d = P[(r + 1) * (C + 1) + c], e = P[(r + 1) * (C + 1) + c + 1];
+        var tris = (r + c) % 2 ? [[a, b, e], [a, e, d]] : [[a, b, d], [b, e, d]];
+        tris.forEach(function (tr) {
+          var g = ctx.createLinearGradient(tr[0].x, tr[0].y, tr[2].x, tr[2].y);
+          g.addColorStop(0, col(tr[0].x, tr[0].y, t, 0));
+          g.addColorStop(1, col(tr[2].x, tr[2].y, t, .22));
+          ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(tr[0].x, tr[0].y); ctx.lineTo(tr[1].x, tr[1].y); ctx.lineTo(tr[2].x, tr[2].y); ctx.closePath(); ctx.fill();
+        });
+      }
+      if (!still) requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
   }
 
   /* ---------- 弹层 ---------- */

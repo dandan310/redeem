@@ -529,3 +529,4 @@ table.tbl { width: 100%; border-collapse: collapse; background: var(--surface); 
   .bar.rv > i { width: var(--w); transition: none; }
   .marker::after, .hero-band, .live, .fly, .band, .tabbar button.on svg, .band-track { animation: none; }
 }
+.sec-head b i { font-style: normal; }
